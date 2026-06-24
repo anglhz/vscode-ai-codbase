@@ -114,15 +114,14 @@
               <input name="port" type="number" min="1" max="65535" placeholder="28960" required />
             </label>
             <p class="admin-form-note">
-              Later this will query CoD getstatus/API data for map, players,
-              max players, ping, and whether it should appear on the front page.
+              CoD and TeamSpeak status is queried from the saved IP and port.
             </p>
             <div class="form-actions">
               <button class="button button-primary" type="submit">Save server</button>
               <button class="button button-ghost" type="button" data-clear-server>Clear</button>
             </div>
           </form>
-          <div class="admin-list" data-server-list aria-label="Server entries"></div>
+          <div class="admin-list server-admin-list" data-server-list aria-label="Server entries"></div>
         </div>
       </section>
     </main>

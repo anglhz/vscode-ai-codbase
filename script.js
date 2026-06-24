@@ -115,7 +115,7 @@ const attachCardTilt = () => {
 const startTypingWord = () => {
   if (!typingWord || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  const words = ["Matches.", "Ladders.", "Cups.", "Servers."];
+  const words = ["Matches.", "Ladders.", "Cups.", "LANs.", "Servers."];
   let wordIndex = 0;
   let charIndex = words[wordIndex].length;
   let deleting = true;

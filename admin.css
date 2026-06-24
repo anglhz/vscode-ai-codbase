@@ -251,6 +251,7 @@
 }
 
 .server-admin-grid {
+  align-items: start;
   grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
 }
 
@@ -297,6 +298,31 @@
 .admin-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.server-admin-grid .admin-form {
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+  position: sticky;
+  top: 1rem;
+}
+
+.server-admin-list {
+  align-content: start;
+  max-height: min(58rem, calc(100vh - 6rem));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.8rem;
+}
+
+.server-admin-list::-webkit-scrollbar,
+.server-admin-grid .admin-form::-webkit-scrollbar {
+  width: 0.55rem;
+}
+
+.server-admin-list::-webkit-scrollbar-thumb,
+.server-admin-grid .admin-form::-webkit-scrollbar-thumb {
+  background: rgba(240, 164, 0, 0.42);
 }
 
 .admin-item {
@@ -389,6 +415,36 @@
   gap: 0.5rem;
 }
 
+.server-admin-list .admin-item {
+  min-height: 5.2rem;
+  padding: 0.8rem;
+}
+
+.server-admin-list .admin-item-head {
+  align-items: center;
+}
+
+.server-admin-list .server-admin-info {
+  align-items: center;
+}
+
+.server-admin-list .admin-item small {
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.server-admin-list .admin-item h3 {
+  font-size: 1rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.server-admin-list .server-address-chip,
+.server-admin-list .server-port-chip {
+  font-size: 0.76rem;
+  padding: 0.32rem 0.48rem;
+}
+
 .icon-action {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -419,6 +475,17 @@
   .admin-grid,
   .admin-stats {
     grid-template-columns: 1fr;
+  }
+
+  .server-admin-grid .admin-form,
+  .server-admin-list {
+    max-height: none;
+    overflow: visible;
+    position: static;
+  }
+
+  .server-admin-list {
+    padding-right: 1.2rem;
   }
 }
 
