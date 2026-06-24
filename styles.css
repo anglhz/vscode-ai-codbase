@@ -825,6 +825,36 @@ h3 {
   transform-style: preserve-3d;
 }
 
+.empty-state {
+  background:
+    linear-gradient(135deg, rgba(240, 164, 0, 0.08), transparent 38%),
+    rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 15rem;
+  padding: 1.5rem;
+}
+
+.empty-state span {
+  color: var(--gold);
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 950;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+.empty-state h3 {
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  margin: 0 0 0.7rem;
+  text-transform: uppercase;
+}
+
+.empty-state p {
+  color: var(--muted);
+  margin: 0;
+  max-width: 34rem;
+}
+
 .news-media {
   aspect-ratio: 1.45;
   background-color: #171914;

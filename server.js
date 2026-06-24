@@ -13,30 +13,8 @@ const sessionTtlMs = Number(process.env.ADMIN_SESSION_TTL_MS || 1000 * 60 * 60 *
 const sessions = new Map();
 
 const defaults = {
-  news: [
-    {
-      id: "news-1",
-      title: "LAN #7 announced for Lodz",
-      date: "2026-10-20",
-      category: "Event",
-      excerpt: "Travel plans, rules, and registration details are being prepared for the next classic LAN.",
-      source: "admin",
-    },
-    {
-      id: "news-2",
-      title: "CoDBase Nations Cup returns",
-      date: "2026-09-12",
-      category: "Community",
-      excerpt: "National teams are forming again for a fast, clean tournament format.",
-      source: "admin",
-    },
-  ],
-  servers: [
-    { id: "server-1", name: "CoDBase Cup #1", ip: "play.codbase.eu", port: 28960 },
-    { id: "server-2", name: "Rifles Only EU", ip: "rifles.codbase.eu", port: 28960 },
-    { id: "server-3", name: "Classic Rotation", ip: "classic.codbase.eu", port: 28960 },
-    { id: "server-4", name: "Scrim Server A", ip: "scrim-a.codbase.eu", port: 28960 },
-  ],
+  news: [],
+  servers: [],
 };
 
 const mimeTypes = {

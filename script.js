@@ -117,7 +117,18 @@ const startTypingWord = () => {
 const renderManagedNews = async () => {
   const news = await fetchManagedList("/api/news", NEWS_KEY);
   const newsGrid = document.querySelector(".news-grid");
-  if (!newsGrid || !news?.length) return;
+  if (!newsGrid) return;
+
+  if (!news?.length) {
+    newsGrid.innerHTML = `
+      <article class="empty-state reveal is-visible">
+        <span>News room</span>
+        <h3>No news posted yet.</h3>
+        <p>Fresh updates will appear here as soon as they are published.</p>
+      </article>
+    `;
+    return;
+  }
 
   const mediaClasses = ["medal-media", "cup-media", "server-media"];
   newsGrid.innerHTML = news
@@ -146,7 +157,38 @@ const renderManagedServers = async () => {
   const serverHeading = document.querySelector(".server-copy h2");
   const serverIntro = document.querySelector(".server-copy p:not(.eyebrow)");
 
-  if (!storedServers?.length || !activeRack || !serverTable) return;
+  if (!activeRack || !serverTable) return;
+
+  if (!storedServers?.length) {
+    if (serverTotal) serverTotal.textContent = "0 registered";
+    if (allServersTitle) allServersTitle.textContent = "0 registered game servers";
+    if (serverHeading) serverHeading.textContent = "Servers with players right now.";
+    if (serverIntro) {
+      serverIntro.textContent =
+        "Servers added in the admin panel will appear here once the live status backend is connected.";
+    }
+
+    activeRack.innerHTML = `
+      <article>
+        <span class="status-dot idle"></span>
+        <div>
+          <strong>No servers added yet</strong>
+          <small>Add servers from the admin panel.</small>
+        </div>
+        <em>Pending</em>
+      </article>
+    `;
+    serverTable.innerHTML = `
+      <article>
+        <span class="status-dot idle"></span>
+        <strong>No servers added yet</strong>
+        <small>Admin managed</small>
+        <em>Pending</em>
+        <b>Watch</b>
+      </article>
+    `;
+    return;
+  }
 
   const servers = storedServers.map(normalizeServer);
 

@@ -1,29 +1,8 @@
 const NEWS_KEY = "codbase_admin_news";
 const SERVERS_KEY = "codbase_admin_servers";
 
-const defaultNews = [
-  {
-    id: "news-1",
-    title: "LAN #7 announced for Lodz",
-    date: "2026-10-20",
-    category: "Event",
-    excerpt: "Travel plans, rules, and registration details are being prepared for the next classic LAN.",
-  },
-  {
-    id: "news-2",
-    title: "CoDBase Nations Cup returns",
-    date: "2026-09-12",
-    category: "Community",
-    excerpt: "National teams are forming again for a fast, clean tournament format.",
-  },
-];
-
-const defaultServers = [
-  { id: "server-1", name: "CoDBase Cup #1", ip: "play.codbase.eu", port: 28960 },
-  { id: "server-2", name: "Rifles Only EU", ip: "rifles.codbase.eu", port: 28960 },
-  { id: "server-3", name: "Classic Rotation", ip: "classic.codbase.eu", port: 28960 },
-  { id: "server-4", name: "Scrim Server A", ip: "scrim-a.codbase.eu", port: 28960 },
-];
+const defaultNews = [];
+const defaultServers = [];
 
 const readStore = (key, fallback) => {
   try {
