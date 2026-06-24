@@ -1051,6 +1051,11 @@ h3 {
   align-self: center;
 }
 
+.server-copy .eyebrow,
+.contact-copy .eyebrow {
+  color: var(--gold-hot);
+}
+
 .contact-copy h2 {
   font-size: clamp(2.4rem, 4.6vw, 4.2rem);
   line-height: 0.9;
