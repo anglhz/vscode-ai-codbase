@@ -55,24 +55,30 @@ data/servers.json
 
 This is intentionally simple. Later we can replace the JSON files with SQLite without changing the frontend much.
 
-## CoD1 Server Status
+## Server Status
 
-Servers added in the admin panel are queried with the CoD1 UDP `getstatus` request. The homepage uses:
+Servers added in the admin panel are queried by the backend. CoD1 servers use UDP `getstatus`. TeamSpeak 3 servers use ServerQuery over TCP, usually port `10011`, then select the virtual server by the voice port you entered in admin.
+
+TeamSpeak rows are detected automatically when the name contains `TeamSpeak`/`TS3` or the voice port is `9987`/`9986`.
+
+The homepage uses:
 
 ```text
 GET /api/servers/status
 ```
 
-The response includes `players`, `maxPlayers`, `map`, `status`, and `statusText`. The front page only shows servers under Active Now when `players > 0`.
+The response includes `type`, `players`, `maxPlayers`, `map`, `status`, and `statusText`. The front page only shows servers under Active Now when `players > 0`.
 
 Useful env settings:
 
 ```text
 COD_QUERY_TIMEOUT_MS=900
+TS3_QUERY_PORT=10011
+TS3_QUERY_TIMEOUT_MS=1500
 SERVER_STATUS_CACHE_MS=15000
 ```
 
-Your host must allow outbound UDP from Node to the game server IP/port.
+Your host must allow outbound UDP from Node to CoD1 server IP/ports, and outbound TCP to the TeamSpeak ServerQuery port. The TeamSpeak server must allow ServerQuery from the website server IP.
 
 ## Discord News Sync
 

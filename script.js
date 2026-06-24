@@ -64,6 +64,7 @@ const normalizeServer = (server) => {
       maxPlayers: Number(server.maxPlayers || 0),
       map: server.map || "",
       gameType: server.gameType || "",
+      type: server.type || "cod1",
     };
   }
 
@@ -82,11 +83,16 @@ const normalizeServer = (server) => {
     maxPlayers: Number(server.maxPlayers || 0),
     map: server.map || "",
     gameType: server.gameType || "",
+    type: server.type || "cod1",
   };
 };
 
 const playerCount = (server) => `${Number(server.players || 0)}/${Number(server.maxPlayers || 0) || "?"}`;
 const serverMeta = (server) => server.map || `${server.ip}:${server.port}`;
+const statusDotClass = (server) => {
+  if (server.type === "teamspeak3" && server.status === "online") return "voice";
+  return server.status === "online" ? "online" : "idle";
+};
 
 const attachCardTilt = () => {
   document.querySelectorAll(".news-card, .intro-card").forEach((card) => {
@@ -189,7 +195,7 @@ const renderManagedServers = async () => {
 
   if (!storedServers?.length) {
     if (serverTotal) serverTotal.textContent = "0 registered";
-    if (allServersTitle) allServersTitle.textContent = "0 registered game servers";
+    if (allServersTitle) allServersTitle.textContent = "0 registered servers";
     if (serverHeading) serverHeading.textContent = "Servers with players right now.";
     if (serverIntro) {
       serverIntro.textContent =
@@ -223,18 +229,18 @@ const renderManagedServers = async () => {
   const totalPlayers = servers.reduce((total, server) => total + Number(server.players || 0), 0);
 
   if (serverTotal) serverTotal.textContent = `${totalPlayers} players`;
-  if (allServersTitle) allServersTitle.textContent = `${servers.length} registered game servers`;
-  if (serverHeading) serverHeading.textContent = "Registered CoD servers.";
+  if (allServersTitle) allServersTitle.textContent = `${servers.length} registered servers`;
+  if (serverHeading) serverHeading.textContent = "Registered community servers.";
   if (serverIntro) {
     serverIntro.textContent =
-      "Active now only shows servers with players. Open the full watchlist to see every registered CoD server and its latest query result.";
+      "Active now only shows game or voice servers with people connected. Open the full watchlist to see every registered server and its latest query result.";
   }
 
   activeRack.innerHTML = activeServers.length
     ? activeServers
       .map((server) => `
       <article>
-        <span class="status-dot online"></span>
+        <span class="status-dot ${statusDotClass(server)}"></span>
         <div>
           <strong>${escapeHtml(server.name)}</strong>
           <small>${escapeHtml(serverMeta(server))} - ${escapeHtml(server.ip)}:${escapeHtml(server.port)}</small>
@@ -256,8 +262,8 @@ const renderManagedServers = async () => {
 
   serverTable.innerHTML = servers
     .map((server) => `
-      <article class="${server.players > 0 ? "has-players" : ""}">
-        <span class="status-dot ${server.status === "online" ? "online" : "idle"}"></span>
+      <article class="${server.players > 0 ? "has-players" : ""} ${server.type === "teamspeak3" ? "voice-server" : ""}">
+        <span class="status-dot ${statusDotClass(server)}"></span>
         <strong>${escapeHtml(server.name)}</strong>
         <small>${escapeHtml(server.ip)}:${escapeHtml(server.port)}</small>
         <em>${escapeHtml(playerCount(server))}</em>

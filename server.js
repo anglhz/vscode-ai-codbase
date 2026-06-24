@@ -3,6 +3,7 @@ const fs = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
 const dgram = require("dgram");
+const net = require("net");
 
 const root = __dirname;
 const dataDir = path.join(root, "data");
@@ -12,6 +13,8 @@ const adminUsername = process.env.ADMIN_USERNAME || "admin";
 const adminPassword = process.env.ADMIN_PASSWORD || "codbase";
 const sessionTtlMs = Number(process.env.ADMIN_SESSION_TTL_MS || 1000 * 60 * 60 * 12);
 const codQueryTimeoutMs = Number(process.env.COD_QUERY_TIMEOUT_MS || 900);
+const ts3QueryPort = Number(process.env.TS3_QUERY_PORT || 10011);
+const ts3QueryTimeoutMs = Number(process.env.TS3_QUERY_TIMEOUT_MS || 1500);
 const serverStatusCacheMs = Number(process.env.SERVER_STATUS_CACHE_MS || 15000);
 const sessions = new Map();
 const serverStatusCache = {
@@ -153,7 +156,17 @@ const cleanServer = (input) => ({
   name: String(input.name || "Unnamed server").trim(),
   ip: String(input.ip || "server.codbase.eu").trim(),
   port: Number(input.port || 28960),
+  type: input.type ? String(input.type) : undefined,
 });
+
+const inferServerType = (server) => {
+  const name = String(server.name || "").toLowerCase();
+  const port = Number(server.port);
+
+  if (server.type) return server.type;
+  if (name.includes("teamspeak") || name.includes("ts3") || port === 9987 || port === 9986) return "teamspeak3";
+  return "cod1";
+};
 
 const parseInfoLine = (line) => {
   const values = {};
@@ -247,6 +260,119 @@ const queryCodServer = (server) =>
     });
   });
 
+const unescapeTs3Value = (value) =>
+  String(value || "")
+    .replace(/\\s/g, " ")
+    .replace(/\\p/g, "|")
+    .replace(/\\\//g, "/")
+    .replace(/\\\\/g, "\\");
+
+const parseTs3KeyValues = (line) =>
+  String(line || "")
+    .split(" ")
+    .filter(Boolean)
+    .reduce((values, part) => {
+      const [key, ...rawValue] = part.split("=");
+      values[key] = unescapeTs3Value(rawValue.join("="));
+      return values;
+    }, {});
+
+const parseTs3Status = (response) => {
+  const lines = String(response).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const infoLine = lines.find((line) => line.includes("virtualserver_")) || "";
+  const errorLine = lines.find((line) => line.startsWith("error "));
+  const info = parseTs3KeyValues(infoLine);
+  const error = parseTs3KeyValues(errorLine);
+
+  if (error.id && error.id !== "0") {
+    return {
+      status: "offline",
+      statusText: error.msg || "Query denied",
+    };
+  }
+
+  const onlineClients = Number(info.virtualserver_clientsonline || 0);
+  const queryClients = Number(info.virtualserver_queryclientsonline || 0);
+  const players = Math.max(onlineClients - queryClients, 0);
+
+  return {
+    status: "online",
+    statusText: "Online",
+    hostname: info.virtualserver_name || "",
+    map: "TeamSpeak 3",
+    gameType: "voice",
+    players,
+    maxPlayers: Number(info.virtualserver_maxclients || 0),
+    playerList: [],
+  };
+};
+
+const queryTs3Server = (server) =>
+  new Promise((resolve) => {
+    const socket = net.createConnection({ host: server.ip, port: ts3QueryPort });
+    let settled = false;
+    let response = "";
+
+    const finish = (status) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      socket.destroy();
+      resolve({
+        ...server,
+        type: "teamspeak3",
+        players: 0,
+        maxPlayers: 0,
+        playerList: [],
+        map: "TeamSpeak 3",
+        gameType: "voice",
+        hostname: "",
+        ...status,
+      });
+    };
+
+    const timeout = setTimeout(() => {
+      finish({ status: "offline", statusText: "No response" });
+    }, ts3QueryTimeoutMs);
+
+    socket.setEncoding("utf8");
+
+    socket.on("connect", () => {
+      socket.write(`use port=${Number(server.port)}\nserverinfo\nquit\n`);
+    });
+
+    socket.on("data", (chunk) => {
+      response += chunk;
+      if (response.includes("virtualserver_") && response.includes("error id=")) {
+        try {
+          finish(parseTs3Status(response));
+        } catch {
+          finish({ status: "offline", statusText: "Invalid response" });
+        }
+      }
+    });
+
+    socket.once("error", () => {
+      finish({ status: "offline", statusText: "No response" });
+    });
+
+    socket.once("close", () => {
+      if (settled) return;
+      try {
+        finish(parseTs3Status(response));
+      } catch {
+        finish({ status: "offline", statusText: "Invalid response" });
+      }
+    });
+  });
+
+const queryServer = (server) => {
+  const clean = cleanServer(server);
+  const type = inferServerType(clean);
+  const typedServer = { ...clean, type };
+  return type === "teamspeak3" ? queryTs3Server(typedServer) : queryCodServer(typedServer);
+};
+
 const readServerStatus = async () => {
   const servers = await readCollection("servers");
   const cacheKey = JSON.stringify(servers);
@@ -255,7 +381,7 @@ const readServerStatus = async () => {
     return serverStatusCache.items;
   }
 
-  const items = await Promise.all(servers.map((server) => queryCodServer(cleanServer(server))));
+  const items = await Promise.all(servers.map(queryServer));
   serverStatusCache.key = cacheKey;
   serverStatusCache.expiresAt = Date.now() + serverStatusCacheMs;
   serverStatusCache.items = items;
