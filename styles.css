@@ -1010,17 +1010,20 @@ h3 {
 
 .contact-section {
   background:
-    radial-gradient(circle at 20% 20%, rgba(240, 164, 0, 0.13), transparent 22rem),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 48%),
-    #10120f;
+    linear-gradient(180deg, rgba(16, 18, 15, 0), rgba(16, 18, 15, 0.74) 18%, rgba(16, 18, 15, 0.76) 82%, rgba(16, 18, 15, 0)),
+    radial-gradient(circle at 24% 38%, rgba(240, 164, 0, 0.11), transparent 26rem),
+    radial-gradient(circle at 78% 42%, rgba(255, 255, 255, 0.035), transparent 24rem);
+  padding-bottom: clamp(3.2rem, 7vw, 5.5rem);
+  padding-top: clamp(3.2rem, 7vw, 5.5rem);
+}
+
+.contact-inner {
   display: grid;
   gap: clamp(1rem, 2.4vw, 1.6rem);
   grid-template-columns: minmax(18rem, 0.82fr) minmax(18rem, 1fr);
   margin-left: auto;
   margin-right: auto;
   max-width: 1180px;
-  padding-bottom: clamp(3.2rem, 7vw, 5.5rem);
-  padding-top: clamp(3.2rem, 7vw, 5.5rem);
 }
 
 .contact-copy {
@@ -1605,7 +1608,7 @@ h3 {
   .events-layout,
   .news-grid,
   .server-strip,
-  .contact-section {
+  .contact-inner {
     grid-template-columns: 1fr;
   }
 
