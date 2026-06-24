@@ -3,8 +3,13 @@ const counters = document.querySelectorAll("[data-count]");
 const serverToggle = document.querySelector("[data-server-toggle]");
 const serverPanel = document.querySelector("[data-server-panel]");
 const typingWord = document.querySelector("[data-typing-word]");
+const newsModal = document.querySelector("[data-news-modal]");
+const newsModalMeta = document.querySelector("[data-news-modal-meta]");
+const newsModalTitle = document.querySelector("[data-news-modal-title]");
+const newsModalContent = document.querySelector("[data-news-modal-content]");
 const NEWS_KEY = "codbase_admin_news";
 const SERVERS_KEY = "codbase_admin_servers";
+let managedNews = [];
 
 const escapeHtml = (value) =>
   String(value).replace(/[&<>"']/g, (char) => (
@@ -93,6 +98,30 @@ const statusDotClass = (server) => {
   if (server.type === "teamspeak3" && server.status === "online") return "voice";
   return server.status === "online" ? "online" : "idle";
 };
+const formatArticleBody = (value) =>
+  String(value || "")
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br>")}</p>`)
+    .join("");
+
+const closeNewsModal = () => {
+  if (!newsModal) return;
+  newsModal.hidden = true;
+  document.body.classList.remove("modal-open");
+};
+
+const openNewsModal = (item) => {
+  if (!newsModal || !newsModalMeta || !newsModalTitle || !newsModalContent) return;
+
+  newsModalMeta.textContent = `${item.date || "Draft"} / ${item.category || "News"}`;
+  newsModalTitle.textContent = item.title || "Untitled news";
+  newsModalContent.innerHTML = formatArticleBody(item.body || item.excerpt || "No article text yet.");
+  newsModal.hidden = false;
+  document.body.classList.add("modal-open");
+  newsModal.querySelector("[data-news-close]")?.focus();
+};
 
 const attachCardTilt = () => {
   document.querySelectorAll(".news-card, .intro-card").forEach((card) => {
@@ -165,9 +194,11 @@ const renderManagedNews = async () => {
   }
 
   const mediaClasses = ["medal-media", "cup-media", "server-media"];
-  newsGrid.innerHTML = news
+  managedNews = news
     .slice()
-    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+  newsGrid.innerHTML = managedNews
     .map((item, index) => `
       <article class="news-card reveal is-visible">
         <div class="news-media ${mediaClasses[index % mediaClasses.length]}"></div>
@@ -175,7 +206,7 @@ const renderManagedNews = async () => {
           <span>${escapeHtml(item.date || "Draft")} / ${escapeHtml(item.category || "News")}</span>
           <h3>${escapeHtml(item.title || "Untitled news")}</h3>
           <p>${escapeHtml(item.excerpt || "")}</p>
-          <a href="login.html">Admin managed</a>
+          <button class="news-read-more" type="button" data-news-open="${escapeHtml(item.id)}">Read full article</button>
         </div>
       </article>
     `)
@@ -343,6 +374,23 @@ serverToggle?.addEventListener("click", () => {
   requestAnimationFrame(() => {
     serverPanel.classList.add("is-open", "is-visible");
   });
+});
+
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  const newsId = target.dataset.newsOpen;
+  if (newsId) {
+    const item = managedNews.find((news) => news.id === newsId);
+    if (item) openNewsModal(item);
+  }
+
+  if (target.matches("[data-news-close]")) closeNewsModal();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeNewsModal();
 });
 
 document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));

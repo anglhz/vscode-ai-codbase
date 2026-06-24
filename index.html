@@ -291,6 +291,16 @@
       </section>
     </main>
 
+    <div class="news-modal" data-news-modal hidden>
+      <div class="news-modal-backdrop" data-news-close></div>
+      <article class="news-modal-panel" role="dialog" aria-modal="true" aria-labelledby="news-modal-title">
+        <button class="news-modal-close" type="button" data-news-close aria-label="Close article">Close</button>
+        <span data-news-modal-meta></span>
+        <h2 id="news-modal-title" data-news-modal-title></h2>
+        <div class="news-modal-content" data-news-modal-content></div>
+      </article>
+    </div>
+
     <footer class="site-footer" id="join">
       <div class="footer-main">
         <a class="brand footer-brand" href="#top" aria-label="CoDBase home">

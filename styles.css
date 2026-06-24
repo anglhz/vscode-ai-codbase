@@ -903,11 +903,109 @@ h3 {
   text-transform: uppercase;
 }
 
-.news-body a {
+.news-body a,
+.news-read-more {
+  background: transparent;
+  border: 0;
   color: var(--gold-hot);
+  cursor: pointer;
+  font: inherit;
   font-size: 0.72rem;
   font-weight: 950;
+  padding: 0;
   text-transform: uppercase;
+}
+
+.news-read-more:hover {
+  color: var(--ink);
+}
+
+.modal-open {
+  overflow: hidden;
+}
+
+.news-modal {
+  align-items: center;
+  display: grid;
+  inset: 0;
+  padding: clamp(1rem, 4vw, 3rem);
+  position: fixed;
+  z-index: 60;
+}
+
+.news-modal[hidden] {
+  display: none;
+}
+
+.news-modal-backdrop {
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.72);
+  inset: 0;
+  position: absolute;
+}
+
+.news-modal-panel {
+  background:
+    linear-gradient(135deg, rgba(240, 164, 0, 0.1), transparent 32%),
+    #151712;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: var(--shadow);
+  justify-self: center;
+  max-height: min(82vh, 52rem);
+  max-width: 58rem;
+  overflow: auto;
+  padding: clamp(1.4rem, 4vw, 2.4rem);
+  position: relative;
+  width: min(100%, 58rem);
+}
+
+.news-modal-panel > span {
+  color: var(--gold);
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 950;
+  margin-bottom: 0.9rem;
+  text-transform: uppercase;
+}
+
+.news-modal-panel h2 {
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  line-height: 0.9;
+  margin-bottom: 1.4rem;
+  max-width: 13ch;
+  text-transform: uppercase;
+}
+
+.news-modal-content {
+  color: var(--muted);
+  display: grid;
+  gap: 1rem;
+  line-height: 1.8;
+  max-width: 45rem;
+}
+
+.news-modal-content p {
+  margin: 0;
+}
+
+.news-modal-close {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 950;
+  padding: 0.65rem 0.8rem;
+  position: absolute;
+  right: 1rem;
+  text-transform: uppercase;
+  top: 1rem;
+}
+
+.news-modal-close:hover {
+  border-color: rgba(240, 164, 0, 0.55);
+  color: var(--gold-hot);
 }
 
 .video-feature {

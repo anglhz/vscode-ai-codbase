@@ -147,6 +147,7 @@ const cleanNews = (input) => ({
   date: String(input.date || new Date().toISOString().slice(0, 10)),
   category: String(input.category || "News").trim(),
   excerpt: String(input.excerpt || "").trim(),
+  body: String(input.body || input.excerpt || "").trim(),
   source: String(input.source || "admin"),
   discordMessageId: input.discordMessageId ? String(input.discordMessageId) : undefined,
 });

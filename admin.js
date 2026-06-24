@@ -145,6 +145,7 @@ const renderNews = () => {
               <small>${escapeHtml(item.category)} / ${escapeHtml(item.date)}</small>
               <h3>${escapeHtml(item.title)}</h3>
               <p>${escapeHtml(item.excerpt)}</p>
+              <small>${escapeHtml(item.body ? `${item.body.length} article characters` : "Excerpt only")}</small>
             </div>
             <div class="admin-item-actions">
               <button class="icon-action" type="button" data-edit-news="${item.id}">Edit</button>
@@ -212,6 +213,7 @@ newsForm?.addEventListener("submit", async (event) => {
     date: String(data.get("date")),
     category: String(data.get("category")),
     excerpt: String(data.get("excerpt")).trim(),
+    body: String(data.get("body")).trim(),
   };
   const isExisting = newsItems.some((news) => news.id === item.id);
 
@@ -277,6 +279,7 @@ document.addEventListener("click", async (event) => {
     newsForm.elements.date.value = item.date;
     newsForm.elements.category.value = item.category;
     newsForm.elements.excerpt.value = item.excerpt;
+    newsForm.elements.body.value = item.body || item.excerpt || "";
     newsForm.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
