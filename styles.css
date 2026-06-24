@@ -820,6 +820,27 @@ h3 {
   text-transform: uppercase;
 }
 
+.event-result-meta {
+  display: grid;
+  gap: 0.12rem;
+  justify-items: end;
+  min-width: 8rem;
+  text-align: right;
+}
+
+.event-result-label {
+  color: var(--gold-hot);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.event-result-value {
+  color: var(--ink);
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
 .news-card {
   overflow: hidden;
   transform-style: preserve-3d;
@@ -1711,6 +1732,11 @@ h3 {
   .event-result {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .event-result-meta {
+    justify-items: start;
+    text-align: left;
   }
 }
 

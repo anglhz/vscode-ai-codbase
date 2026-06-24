@@ -119,6 +119,19 @@ const eventEnd = (event) => event.endDate || event.startDate;
 const isCurrentEvent = (event, today) => event.startDate <= today && eventEnd(event) >= today;
 const isUpcomingEvent = (event, today) => event.startDate > today;
 const isPastEvent = (event, today) => eventEnd(event) < today;
+const formatEventResult = (value) => {
+  const result = String(value || "Completed").trim();
+  const winnerMatch = result.match(/^winner\s*:\s*(.+)$/i);
+
+  if (winnerMatch) {
+    return `
+      <span class="event-result-label">Winner</span>
+      <span class="event-result-value">${escapeHtml(winnerMatch[1])}</span>
+    `;
+  }
+
+  return `<span class="event-result-value">${escapeHtml(result)}</span>`;
+};
 const formatArticleBody = (value) =>
   String(value || "")
     .split(/\n{2,}/)
@@ -305,7 +318,7 @@ const renderManagedEvents = async () => {
     ? past.map((event) => `
       <article class="event-result">
         <strong>${escapeHtml(event.title)}</strong>
-        <span>${escapeHtml(event.result || event.status || "Completed")}</span>
+        <span class="event-result-meta">${formatEventResult(event.result || event.status || "Completed")}</span>
       </article>
     `).join("")
     : `
