@@ -10,6 +10,7 @@ const newsModalMeta = document.querySelector("[data-news-modal-meta]");
 const newsModalTitle = document.querySelector("[data-news-modal-title]");
 const newsModalContent = document.querySelector("[data-news-modal-content]");
 const NEWS_KEY = "codbase_admin_news";
+const EVENTS_KEY = "codbase_admin_events";
 const SERVERS_KEY = "codbase_admin_servers";
 let managedNews = [];
 
@@ -100,6 +101,24 @@ const statusDotClass = (server) => {
   if (server.type === "teamspeak3" && server.status === "online") return "voice";
   return server.status === "online" ? "online" : "idle";
 };
+const formatDate = (value) => {
+  if (!value) return "No date";
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+};
+const localDateKey = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+const eventEnd = (event) => event.endDate || event.startDate;
+const isCurrentEvent = (event, today) => event.startDate <= today && eventEnd(event) >= today;
+const isUpcomingEvent = (event, today) => event.startDate > today;
+const isPastEvent = (event, today) => eventEnd(event) < today;
 const formatArticleBody = (value) =>
   String(value || "")
     .split(/\n{2,}/)
@@ -215,6 +234,88 @@ const renderManagedNews = async () => {
     .join("");
 };
 
+const renderManagedEvents = async () => {
+  const events = await fetchManagedList("/api/events", EVENTS_KEY);
+  const currentPanel = document.querySelector("[data-current-event]");
+  const upcomingPanel = document.querySelector("[data-upcoming-events]");
+  const pastPanel = document.querySelector("[data-past-events]");
+  if (!currentPanel || !upcomingPanel || !pastPanel) return;
+
+  const today = localDateKey();
+  const items = (events || []).slice();
+  const current = items.filter((event) => isCurrentEvent(event, today)).sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+  const upcoming = items.filter((event) => isUpcomingEvent(event, today)).sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 4);
+  const past = items.filter((event) => isPastEvent(event, today)).sort((a, b) => eventEnd(b).localeCompare(eventEnd(a))).slice(0, 4);
+
+  if (current) {
+    currentPanel.innerHTML = `
+      <div class="event-status">Current event</div>
+      <div class="event-main">
+        <span class="event-date">${escapeHtml(formatDate(current.startDate))}${current.endDate ? ` - ${escapeHtml(formatDate(current.endDate))}` : ""}</span>
+        <h3>${escapeHtml(current.title)}</h3>
+        <p>${escapeHtml(current.description || "Event details will be updated soon.")}</p>
+      </div>
+      <div class="event-meta-grid">
+        <div><span>Teams</span><strong>${escapeHtml(current.teams || "-")}</strong></div>
+        <div><span>Stage</span><strong>${escapeHtml(current.stage || current.status || "-")}</strong></div>
+        <div><span>Format</span><strong>${escapeHtml(current.format || current.type || "-")}</strong></div>
+      </div>
+      <a class="button button-primary" href="${escapeHtml(current.link || "#news")}">View updates</a>
+    `;
+  } else {
+    currentPanel.innerHTML = `
+      <div class="event-status">Current event</div>
+      <div class="event-main">
+        <span class="event-date">No current event</span>
+        <h3>No event running.</h3>
+        <p>Add events from the admin panel and they will appear here automatically.</p>
+      </div>
+      <div class="event-meta-grid">
+        <div><span>Teams</span><strong>-</strong></div>
+        <div><span>Stage</span><strong>-</strong></div>
+        <div><span>Format</span><strong>-</strong></div>
+      </div>
+      <a class="button button-primary" href="#contact">Suggest event</a>
+    `;
+  }
+
+  upcomingPanel.innerHTML = upcoming.length
+    ? upcoming.map((event) => `
+      <article class="event-row">
+        <time datetime="${escapeHtml(event.startDate)}">${escapeHtml(formatDate(event.startDate))}</time>
+        <div>
+          <h4>${escapeHtml(event.title)}</h4>
+          <p>${escapeHtml(event.description || event.type || "More details soon.")}</p>
+        </div>
+        <span>${escapeHtml(event.status || "Open")}</span>
+      </article>
+    `).join("")
+    : `
+      <article class="event-row">
+        <time>No date</time>
+        <div>
+          <h4>No upcoming events.</h4>
+          <p>Add future events from the admin panel.</p>
+        </div>
+        <span>Empty</span>
+      </article>
+    `;
+
+  pastPanel.innerHTML = past.length
+    ? past.map((event) => `
+      <article class="event-result">
+        <strong>${escapeHtml(event.title)}</strong>
+        <span>${escapeHtml(event.result || event.status || "Completed")}</span>
+      </article>
+    `).join("")
+    : `
+      <article class="event-result">
+        <strong>No past events yet.</strong>
+        <span>Completed events will appear here.</span>
+      </article>
+    `;
+};
+
 const renderManagedServers = async () => {
   const storedServers = await fetchServerStatus();
   const activeRack = document.querySelector(".active-rack");
@@ -307,6 +408,7 @@ const renderManagedServers = async () => {
 };
 
 renderManagedNews().then(attachCardTilt);
+renderManagedEvents();
 renderManagedServers();
 setInterval(renderManagedServers, 30000);
 startTypingWord();
@@ -314,6 +416,10 @@ startTypingWord();
 window.addEventListener("storage", (event) => {
   if (event.key === NEWS_KEY) {
     renderManagedNews().then(attachCardTilt);
+  }
+
+  if (event.key === EVENTS_KEY) {
+    renderManagedEvents();
   }
 
   if (event.key === SERVERS_KEY) {

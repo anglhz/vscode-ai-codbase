@@ -17,6 +17,7 @@
       <nav class="admin-nav" aria-label="Admin navigation">
         <a href="#overview">Overview</a>
         <a href="#news-admin">News</a>
+        <a href="#events-admin">Events</a>
         <a href="#servers-admin">Servers</a>
       </nav>
       <button class="admin-logout" type="button" data-logout>Logout</button>
@@ -42,6 +43,10 @@
         <article>
           <span>Registered servers</span>
           <strong data-server-count>0</strong>
+        </article>
+        <article>
+          <span>Events</span>
+          <strong data-event-count>0</strong>
         </article>
         <article>
           <span>API status</span>
@@ -91,6 +96,82 @@
             </div>
           </form>
           <div class="admin-list" data-news-list aria-label="News entries"></div>
+        </div>
+      </section>
+
+      <section class="admin-section" id="events-admin">
+        <div class="admin-section-head">
+          <div>
+            <p class="eyebrow">Event Desk</p>
+            <h2>Add and edit events</h2>
+          </div>
+          <button class="button button-ghost" type="button" data-reset-events>Reset events</button>
+        </div>
+        <div class="admin-grid">
+          <form class="admin-form" data-event-form>
+            <input type="hidden" name="id" />
+            <label>
+              <span>Title</span>
+              <input name="title" placeholder="CoDBase Cup #2" required />
+            </label>
+            <div class="form-row">
+              <label>
+                <span>Start date</span>
+                <input name="startDate" type="date" required />
+              </label>
+              <label>
+                <span>End date</span>
+                <input name="endDate" type="date" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Type</span>
+                <select name="type">
+                  <option>Cup</option>
+                  <option>Ladder</option>
+                  <option>LAN</option>
+                  <option>Showmatch</option>
+                  <option>Community</option>
+                </select>
+              </label>
+              <label>
+                <span>Status</span>
+                <input name="status" placeholder="Open, Draft, Groups..." required />
+              </label>
+            </div>
+            <label>
+              <span>Description</span>
+              <textarea name="description" rows="4" placeholder="Short event summary..." required></textarea>
+            </label>
+            <div class="form-row">
+              <label>
+                <span>Teams</span>
+                <input name="teams" placeholder="16" />
+              </label>
+              <label>
+                <span>Format</span>
+                <input name="format" placeholder="5v5 S&D" />
+              </label>
+            </div>
+            <label>
+              <span>Stage</span>
+              <input name="stage" placeholder="Registration, Groups, Playoffs..." />
+            </label>
+            <label>
+              <span>Past result</span>
+              <input name="result" placeholder="Winner: Team Name" />
+            </label>
+            <label>
+              <span>Link</span>
+              <input name="link" placeholder="#news" />
+            </label>
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">Save event</button>
+              <button class="button button-ghost" type="button" data-clear-event>Clear</button>
+            </div>
+          </form>
+          <div class="admin-list" data-event-list aria-label="Event entries"></div>
         </div>
       </section>
 

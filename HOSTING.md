@@ -27,6 +27,12 @@ PUT    /api/news/:id
 DELETE /api/news/:id
 POST   /api/news/reset
 
+GET    /api/events
+POST   /api/events
+PUT    /api/events/:id
+DELETE /api/events/:id
+POST   /api/events/reset
+
 GET    /api/servers
 GET    /api/servers/status
 POST   /api/servers

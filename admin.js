@@ -1,7 +1,9 @@
 const NEWS_KEY = "codbase_admin_news";
+const EVENTS_KEY = "codbase_admin_events";
 const SERVERS_KEY = "codbase_admin_servers";
 
 const defaultNews = [];
+const defaultEvents = [];
 const defaultServers = [];
 
 const readStore = (key, fallback) => {
@@ -86,14 +88,18 @@ if (loginForm) {
 const isAdminPage = document.body.classList.contains("admin-page");
 
 const newsForm = document.querySelector("[data-news-form]");
+const eventForm = document.querySelector("[data-event-form]");
 const serverForm = document.querySelector("[data-server-form]");
 const newsList = document.querySelector("[data-news-list]");
+const eventList = document.querySelector("[data-event-list]");
 const serverList = document.querySelector("[data-server-list]");
 const newsCount = document.querySelector("[data-news-count]");
+const eventCount = document.querySelector("[data-event-count]");
 const serverCount = document.querySelector("[data-server-count]");
 const apiStatus = document.querySelector("[data-api-status]");
 
 let newsItems = readStore(NEWS_KEY, defaultNews);
+let eventItems = readStore(EVENTS_KEY, defaultEvents);
 let serverItems = readStore(SERVERS_KEY, defaultServers);
 
 const normalizeServer = (server) => {
@@ -124,6 +130,7 @@ serverItems = serverItems.map(normalizeServer);
 const syncStats = () => {
   if (!newsCount) return;
   newsCount.textContent = newsItems.length;
+  if (eventCount) eventCount.textContent = eventItems.length;
   serverCount.textContent = serverItems.length;
   if (apiStatus) apiStatus.textContent = "Ready";
 };
@@ -150,6 +157,32 @@ const renderNews = () => {
             <div class="admin-item-actions">
               <button class="icon-action" type="button" data-edit-news="${item.id}">Edit</button>
               <button class="icon-action" type="button" data-delete-news="${item.id}">Remove</button>
+            </div>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+};
+
+const renderEvents = () => {
+  if (!eventList) return;
+  eventList.innerHTML = eventItems
+    .slice()
+    .sort((a, b) => String(a.startDate).localeCompare(String(b.startDate)))
+    .map(
+      (item) => `
+        <article class="admin-item">
+          <div class="admin-item-head">
+            <div>
+              <small>${escapeHtml(item.type)} / ${escapeHtml(item.startDate)}${item.endDate ? ` - ${escapeHtml(item.endDate)}` : ""}</small>
+              <h3>${escapeHtml(item.title)}</h3>
+              <p>${escapeHtml(item.description)}</p>
+              <small>${escapeHtml(item.status)}${item.result ? ` / ${escapeHtml(item.result)}` : ""}</small>
+            </div>
+            <div class="admin-item-actions">
+              <button class="icon-action" type="button" data-edit-event="${item.id}">Edit</button>
+              <button class="icon-action" type="button" data-delete-event="${item.id}">Remove</button>
             </div>
           </div>
         </article>
@@ -200,6 +233,7 @@ const reorderServers = (dragId, targetId) => {
 
 const renderAdmin = () => {
   renderNews();
+  renderEvents();
   renderServers();
   syncStats();
 };
@@ -233,6 +267,44 @@ newsForm?.addEventListener("submit", async (event) => {
 
   writeStore(NEWS_KEY, newsItems);
   clearForm(newsForm);
+  renderAdmin();
+});
+
+eventForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const data = new FormData(eventForm);
+  const item = {
+    id: data.get("id") || uid("event"),
+    title: String(data.get("title")).trim(),
+    startDate: String(data.get("startDate")),
+    endDate: String(data.get("endDate")).trim(),
+    type: String(data.get("type")).trim(),
+    status: String(data.get("status")).trim(),
+    description: String(data.get("description")).trim(),
+    teams: String(data.get("teams")).trim(),
+    stage: String(data.get("stage")).trim(),
+    format: String(data.get("format")).trim(),
+    result: String(data.get("result")).trim(),
+    link: String(data.get("link")).trim(),
+  };
+  const isExisting = eventItems.some((storedEvent) => storedEvent.id === item.id);
+
+  try {
+    const saved = await apiRequest(isExisting ? `/api/events/${item.id}` : "/api/events", {
+      method: isExisting ? "PUT" : "POST",
+      body: JSON.stringify(item),
+    });
+    eventItems = isExisting
+      ? eventItems.map((storedEvent) => (storedEvent.id === saved.id ? saved : storedEvent))
+      : [saved, ...eventItems];
+  } catch {
+    eventItems = isExisting
+      ? eventItems.map((storedEvent) => (storedEvent.id === item.id ? item : storedEvent))
+      : [item, ...eventItems];
+  }
+
+  writeStore(EVENTS_KEY, eventItems);
+  clearForm(eventForm);
   renderAdmin();
 });
 
@@ -295,6 +367,37 @@ document.addEventListener("click", async (event) => {
     renderAdmin();
   }
 
+  const editEventId = target.dataset.editEvent;
+  if (editEventId && eventForm) {
+    const item = eventItems.find((storedEvent) => storedEvent.id === editEventId);
+    if (!item) return;
+    eventForm.elements.id.value = item.id;
+    eventForm.elements.title.value = item.title;
+    eventForm.elements.startDate.value = item.startDate;
+    eventForm.elements.endDate.value = item.endDate || "";
+    eventForm.elements.type.value = item.type;
+    eventForm.elements.status.value = item.status;
+    eventForm.elements.description.value = item.description;
+    eventForm.elements.teams.value = item.teams || "";
+    eventForm.elements.stage.value = item.stage || "";
+    eventForm.elements.format.value = item.format || "";
+    eventForm.elements.result.value = item.result || "";
+    eventForm.elements.link.value = item.link || "";
+    eventForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  const deleteEventId = target.dataset.deleteEvent;
+  if (deleteEventId) {
+    try {
+      await apiRequest(`/api/events/${deleteEventId}`, { method: "DELETE" });
+    } catch {
+      // Keep the local fallback in sync when the API is not running yet.
+    }
+    eventItems = eventItems.filter((storedEvent) => storedEvent.id !== deleteEventId);
+    writeStore(EVENTS_KEY, eventItems);
+    renderAdmin();
+  }
+
   const editServerId = target.dataset.editServer;
   if (editServerId && serverForm) {
     const item = serverItems.find((server) => server.id === editServerId);
@@ -319,6 +422,7 @@ document.addEventListener("click", async (event) => {
   }
 
   if (target.matches("[data-clear-news]") && newsForm) clearForm(newsForm);
+  if (target.matches("[data-clear-event]") && eventForm) clearForm(eventForm);
   if (target.matches("[data-clear-server]") && serverForm) clearForm(serverForm);
 
   if (target.matches("[data-reset-news]")) {
@@ -328,6 +432,16 @@ document.addEventListener("click", async (event) => {
       newsItems = [...defaultNews];
     }
     writeStore(NEWS_KEY, newsItems);
+    renderAdmin();
+  }
+
+  if (target.matches("[data-reset-events]")) {
+    try {
+      eventItems = await apiRequest("/api/events/reset", { method: "POST" });
+    } catch {
+      eventItems = [...defaultEvents];
+    }
+    writeStore(EVENTS_KEY, eventItems);
     renderAdmin();
   }
 
@@ -418,6 +532,7 @@ const initAdmin = async () => {
   }
 
   newsItems = await apiList("/api/news", NEWS_KEY, defaultNews);
+  eventItems = await apiList("/api/events", EVENTS_KEY, defaultEvents);
   serverItems = (await apiList("/api/servers", SERVERS_KEY, defaultServers)).map(normalizeServer);
   renderAdmin();
 };

@@ -138,21 +138,17 @@
           <h2>Current battles, upcoming cups, and past winners.</h2>
         </div>
         <div class="events-layout">
-          <article class="current-event reveal">
+          <article class="current-event reveal" data-current-event>
             <div class="event-status">Current event</div>
             <div class="event-main">
-              <span class="event-date">Now playing</span>
-              <h3>CoDBase Nations Cup 2026</h3>
-              <p>
-                National teams are fighting through group play before the
-                playoff bracket locks. Match reports, demos, and screenshots
-                are collected after every round.
-              </p>
+              <span class="event-date">No current event</span>
+              <h3>No event running.</h3>
+              <p>Add events from the admin panel and they will appear here automatically.</p>
             </div>
             <div class="event-meta-grid">
-              <div><span>Teams</span><strong>16</strong></div>
-              <div><span>Stage</span><strong>Groups</strong></div>
-              <div><span>Format</span><strong>5v5 S&D</strong></div>
+              <div><span>Teams</span><strong>-</strong></div>
+              <div><span>Stage</span><strong>-</strong></div>
+              <div><span>Format</span><strong>-</strong></div>
             </div>
             <a class="button button-primary" href="#news">View updates</a>
           </article>
@@ -163,30 +159,16 @@
                 <p class="eyebrow">Upcoming</p>
                 <h3>Next events</h3>
               </div>
-              <article class="event-row">
-                <time datetime="2026-07-12">Jul 12</time>
-                <div>
-                  <h4>Summer Rifle Cup</h4>
-                  <p>One-night bracket for rifles-only teams.</p>
-                </div>
-                <span>Open</span>
-              </article>
-              <article class="event-row">
-                <time datetime="2026-08-03">Aug 03</time>
-                <div>
-                  <h4>Classic Ladder Season</h4>
-                  <p>Four weeks of ranked matches and standings.</p>
-                </div>
-                <span>Soon</span>
-              </article>
-              <article class="event-row">
-                <time datetime="2026-09-19">Sep 19</time>
-                <div>
-                  <h4>LAN Warmup Weekend</h4>
-                  <p>Practice cups before the next offline meetup.</p>
-                </div>
-                <span>Draft</span>
-              </article>
+              <div data-upcoming-events>
+                <article class="event-row">
+                  <time>No date</time>
+                  <div>
+                    <h4>No upcoming events.</h4>
+                    <p>Add future events from the admin panel.</p>
+                  </div>
+                  <span>Empty</span>
+                </article>
+              </div>
             </div>
 
             <div class="event-panel reveal">
@@ -194,18 +176,12 @@
                 <p class="eyebrow">Past</p>
                 <h3>Recent results</h3>
               </div>
-              <article class="event-result">
-                <strong>LAN #7 Lodz Qualifier</strong>
-                <span>Winner: Team Veritas</span>
-              </article>
-              <article class="event-result">
-                <strong>CoDBase Cup #1</strong>
-                <span>Winner: Old Guard</span>
-              </article>
-              <article class="event-result">
-                <strong>Spring S&D Ladder</strong>
-                <span>Winner: Northern Five</span>
-              </article>
+              <div data-past-events>
+                <article class="event-result">
+                  <strong>No past events yet.</strong>
+                  <span>Completed events will appear here.</span>
+                </article>
+              </div>
             </div>
           </div>
         </div>

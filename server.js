@@ -25,6 +25,7 @@ const serverStatusCache = {
 
 const defaults = {
   news: [],
+  events: [],
   servers: [],
 };
 
@@ -150,6 +151,21 @@ const cleanNews = (input) => ({
   body: String(input.body || input.excerpt || "").trim(),
   source: String(input.source || "admin"),
   discordMessageId: input.discordMessageId ? String(input.discordMessageId) : undefined,
+});
+
+const cleanEvent = (input) => ({
+  id: input.id || uid("event"),
+  title: String(input.title || "Untitled event").trim(),
+  startDate: String(input.startDate || new Date().toISOString().slice(0, 10)),
+  endDate: String(input.endDate || input.startDate || "").trim(),
+  type: String(input.type || "Cup").trim(),
+  status: String(input.status || "Open").trim(),
+  description: String(input.description || "").trim(),
+  teams: String(input.teams || "").trim(),
+  stage: String(input.stage || "").trim(),
+  format: String(input.format || "").trim(),
+  result: String(input.result || "").trim(),
+  link: String(input.link || "#news").trim(),
 });
 
 const cleanServer = (input) => ({
@@ -434,12 +450,12 @@ const routeApi = async (req, res, pathname) => {
   const collection = parts[1];
   const id = parts[2];
 
-  if (!["news", "servers"].includes(collection)) {
+  if (!["news", "events", "servers"].includes(collection)) {
     sendJson(res, 404, { error: "Unknown API route" });
     return;
   }
 
-  const cleaner = collection === "news" ? cleanNews : cleanServer;
+  const cleaner = collection === "news" ? cleanNews : collection === "events" ? cleanEvent : cleanServer;
   const resetDefaults = defaults[collection];
 
   if (req.method === "GET" && collection === "servers" && id === "status") {
