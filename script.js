@@ -3,6 +3,8 @@ const counters = document.querySelectorAll("[data-count]");
 const serverToggle = document.querySelector("[data-server-toggle]");
 const serverPanel = document.querySelector("[data-server-panel]");
 const typingWord = document.querySelector("[data-typing-word]");
+const contactForm = document.querySelector("[data-contact-form]");
+const contactNote = document.querySelector("[data-contact-note]");
 const newsModal = document.querySelector("[data-news-modal]");
 const newsModalMeta = document.querySelector("[data-news-modal-meta]");
 const newsModalTitle = document.querySelector("[data-news-modal-title]");
@@ -391,6 +393,24 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeNewsModal();
+});
+
+contactForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const data = new FormData(contactForm);
+  const name = String(data.get("name") || "").trim();
+  const email = String(data.get("email") || "").trim();
+  const subject = String(data.get("subject") || "CoDBase contact").trim();
+  const message = String(data.get("message") || "").trim();
+  const body = [
+    message,
+    "",
+    `Name: ${name}`,
+    `Email: ${email}`,
+  ].join("\n");
+
+  window.location.href = `mailto:contact@codbase.eu?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if (contactNote) contactNote.textContent = "Opening your email app...";
 });
 
 document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));

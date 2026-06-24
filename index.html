@@ -47,7 +47,7 @@
           <a href="#about">About</a>
           <a href="#tournaments">Events</a>
           <a href="#servers">Servers</a>
-          <a href="#join">Contact</a>
+          <a href="#contact">Contact</a>
         </nav>
         <a class="search-button" href="#news" aria-label="Search">
           <span class="search-icon" aria-hidden="true"></span>
@@ -291,6 +291,45 @@
       </section>
     </main>
 
+    <section class="contact-section section-band" id="contact">
+      <div class="contact-copy reveal">
+        <p class="eyebrow">Contact</p>
+        <h2>Reach CoDBase.</h2>
+        <p>
+          Send us a message about cups, ladders, server listings, demos,
+          partnerships, or anything the Call of Duty 1 scene should know.
+        </p>
+        <a class="discord-card" href="https://discord.gg/Zh8DP7c" target="_blank" rel="noreferrer">
+          <span>Discord</span>
+          <strong>Join the CoDBase Discord</strong>
+          <small>Fastest way to reach admins and players.</small>
+        </a>
+      </div>
+      <form class="contact-form reveal" data-contact-form>
+        <label>
+          <span>Name</span>
+          <input name="name" autocomplete="name" placeholder="Your name" required />
+        </label>
+        <label>
+          <span>Email</span>
+          <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </label>
+        <label>
+          <span>Subject</span>
+          <input name="subject" placeholder="Cup question, server listing, partnership..." required />
+        </label>
+        <label>
+          <span>Message</span>
+          <textarea name="message" rows="7" placeholder="Write your message..." required></textarea>
+        </label>
+        <div class="contact-actions">
+          <button class="button button-primary" type="submit">Send message</button>
+          <a class="button button-ghost" href="https://discord.gg/Zh8DP7c" target="_blank" rel="noreferrer">Open Discord</a>
+        </div>
+        <p class="contact-note" data-contact-note>Form opens your email app for now.</p>
+      </form>
+    </section>
+
     <div class="news-modal" data-news-modal hidden>
       <div class="news-modal-backdrop" data-news-close></div>
       <article class="news-modal-panel" role="dialog" aria-modal="true" aria-labelledby="news-modal-title">
@@ -341,7 +380,7 @@
         <a href="#about">About</a>
         <a href="#tournaments">Events</a>
         <a href="#servers">Servers</a>
-        <a href="mailto:contact@codbase.eu">Contact</a>
+        <a href="#contact">Contact</a>
       </nav>
       <div class="footer-bottom">
         <span>(c) 2026 CoDBase. Community front page concept.</span>
