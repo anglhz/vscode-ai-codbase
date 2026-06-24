@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
+const dgram = require("dgram");
 
 const root = __dirname;
 const dataDir = path.join(root, "data");
@@ -10,7 +11,14 @@ const host = process.env.HOST || "127.0.0.1";
 const adminUsername = process.env.ADMIN_USERNAME || "admin";
 const adminPassword = process.env.ADMIN_PASSWORD || "codbase";
 const sessionTtlMs = Number(process.env.ADMIN_SESSION_TTL_MS || 1000 * 60 * 60 * 12);
+const codQueryTimeoutMs = Number(process.env.COD_QUERY_TIMEOUT_MS || 900);
+const serverStatusCacheMs = Number(process.env.SERVER_STATUS_CACHE_MS || 15000);
 const sessions = new Map();
+const serverStatusCache = {
+  key: "",
+  expiresAt: 0,
+  items: [],
+};
 
 const defaults = {
   news: [],
@@ -147,6 +155,113 @@ const cleanServer = (input) => ({
   port: Number(input.port || 28960),
 });
 
+const parseInfoLine = (line) => {
+  const values = {};
+  const parts = String(line || "").split("\\").filter(Boolean);
+
+  for (let index = 0; index < parts.length; index += 2) {
+    values[parts[index]] = parts[index + 1] || "";
+  }
+
+  return values;
+};
+
+const parsePlayers = (lines) =>
+  lines
+    .map((line) => {
+      const match = String(line).match(/^(-?\d+)\s+(-?\d+)\s+"(.*)"$/);
+      if (!match) return null;
+
+      return {
+        score: Number(match[1]),
+        ping: Number(match[2]),
+        name: match[3],
+      };
+    })
+    .filter(Boolean);
+
+const parseCodStatus = (message) => {
+  const text = message.toString("latin1").replace(/^\xff\xff\xff\xff/, "");
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  const infoIndex = lines.findIndex((line) => line.startsWith("\\"));
+  const info = parseInfoLine(lines[infoIndex] || "");
+  const players = parsePlayers(infoIndex >= 0 ? lines.slice(infoIndex + 1) : []);
+  const maxPlayers = Number(info.sv_maxclients || info.maxclients || info.clients || 0);
+
+  return {
+    status: "online",
+    statusText: "Online",
+    hostname: info.sv_hostname || info.hostname || "",
+    map: info.mapname || "",
+    gameType: info.g_gametype || info.gametype || "",
+    players: players.length,
+    maxPlayers,
+    playerList: players,
+  };
+};
+
+const queryCodServer = (server) =>
+  new Promise((resolve) => {
+    const socket = dgram.createSocket("udp4");
+    let settled = false;
+    const request = Buffer.concat([
+      Buffer.from([0xff, 0xff, 0xff, 0xff]),
+      Buffer.from("getstatus", "ascii"),
+    ]);
+
+    const finish = (status) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      socket.close();
+      resolve({
+        ...server,
+        players: 0,
+        maxPlayers: 0,
+        playerList: [],
+        map: "",
+        gameType: "",
+        hostname: "",
+        ...status,
+      });
+    };
+
+    const timeout = setTimeout(() => {
+      finish({ status: "offline", statusText: "No response" });
+    }, codQueryTimeoutMs);
+
+    socket.once("message", (message) => {
+      try {
+        finish(parseCodStatus(message));
+      } catch {
+        finish({ status: "offline", statusText: "Invalid response" });
+      }
+    });
+
+    socket.once("error", () => {
+      finish({ status: "offline", statusText: "Query failed" });
+    });
+
+    socket.send(request, Number(server.port), server.ip, (error) => {
+      if (error) finish({ status: "offline", statusText: "Query failed" });
+    });
+  });
+
+const readServerStatus = async () => {
+  const servers = await readCollection("servers");
+  const cacheKey = JSON.stringify(servers);
+
+  if (serverStatusCache.key === cacheKey && serverStatusCache.expiresAt > Date.now()) {
+    return serverStatusCache.items;
+  }
+
+  const items = await Promise.all(servers.map((server) => queryCodServer(cleanServer(server))));
+  serverStatusCache.key = cacheKey;
+  serverStatusCache.expiresAt = Date.now() + serverStatusCacheMs;
+  serverStatusCache.items = items;
+  return items;
+};
+
 const routeAuth = async (req, res, pathname) => {
   if (req.method === "GET" && pathname === "/api/session") {
     sendJson(res, 200, { authenticated: Boolean(getSession(req)) });
@@ -199,6 +314,11 @@ const routeApi = async (req, res, pathname) => {
 
   const cleaner = collection === "news" ? cleanNews : cleanServer;
   const resetDefaults = defaults[collection];
+
+  if (req.method === "GET" && collection === "servers" && id === "status") {
+    sendJson(res, 200, await readServerStatus());
+    return;
+  }
 
   if (req.method === "GET" && parts.length === 2) {
     sendJson(res, 200, await readCollection(collection));

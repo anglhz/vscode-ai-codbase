@@ -39,12 +39,31 @@ const fetchManagedList = async (endpoint, fallbackKey) => {
   return readStore(fallbackKey);
 };
 
+const fetchServerStatus = async () => {
+  try {
+    const response = await fetch("/api/servers/status", { cache: "no-store" });
+    if (!response.ok) throw new Error(`API responded with ${response.status}`);
+    const value = await response.json();
+    if (Array.isArray(value)) return value;
+  } catch {
+    return readStore(SERVERS_KEY);
+  }
+
+  return readStore(SERVERS_KEY);
+};
+
 const normalizeServer = (server) => {
   if (server.ip && server.port) {
     return {
       name: server.name || "Unnamed server",
       ip: server.ip,
       port: Number(server.port) || 28960,
+      status: server.status || "pending",
+      statusText: server.statusText || "Pending",
+      players: Number(server.players || 0),
+      maxPlayers: Number(server.maxPlayers || 0),
+      map: server.map || "",
+      gameType: server.gameType || "",
     };
   }
 
@@ -57,8 +76,17 @@ const normalizeServer = (server) => {
     name: server.name || "Unnamed server",
     ip,
     port: Number(port) || 28960,
+    status: server.status || "pending",
+    statusText: server.statusText || "Pending",
+    players: Number(server.players || 0),
+    maxPlayers: Number(server.maxPlayers || 0),
+    map: server.map || "",
+    gameType: server.gameType || "",
   };
 };
+
+const playerCount = (server) => `${Number(server.players || 0)}/${Number(server.maxPlayers || 0) || "?"}`;
+const serverMeta = (server) => server.map || `${server.ip}:${server.port}`;
 
 const attachCardTilt = () => {
   document.querySelectorAll(".news-card, .intro-card").forEach((card) => {
@@ -149,7 +177,7 @@ const renderManagedNews = async () => {
 };
 
 const renderManagedServers = async () => {
-  const storedServers = await fetchManagedList("/api/servers", SERVERS_KEY);
+  const storedServers = await fetchServerStatus();
   const activeRack = document.querySelector(".active-rack");
   const serverTable = document.querySelector(".server-table");
   const serverTotal = document.querySelector(".server-monitor-head strong");
@@ -191,37 +219,49 @@ const renderManagedServers = async () => {
   }
 
   const servers = storedServers.map(normalizeServer);
+  const activeServers = servers.filter((server) => server.status === "online" && server.players > 0);
+  const totalPlayers = servers.reduce((total, server) => total + Number(server.players || 0), 0);
 
-  if (serverTotal) serverTotal.textContent = `${servers.length} registered`;
+  if (serverTotal) serverTotal.textContent = `${totalPlayers} players`;
   if (allServersTitle) allServersTitle.textContent = `${servers.length} registered game servers`;
   if (serverHeading) serverHeading.textContent = "Registered CoD servers.";
   if (serverIntro) {
     serverIntro.textContent =
-      "These servers are managed from the admin panel. Live map, players, and ping will appear here once the CoD getstatus/API backend is connected.";
+      "Active now only shows servers with players. Open the full watchlist to see every registered CoD server and its latest query result.";
   }
 
-  activeRack.innerHTML = servers
-    .slice(0, 4)
-    .map((server) => `
+  activeRack.innerHTML = activeServers.length
+    ? activeServers
+      .map((server) => `
+      <article>
+        <span class="status-dot online"></span>
+        <div>
+          <strong>${escapeHtml(server.name)}</strong>
+          <small>${escapeHtml(serverMeta(server))} - ${escapeHtml(server.ip)}:${escapeHtml(server.port)}</small>
+        </div>
+        <em>${escapeHtml(playerCount(server))}</em>
+      </article>
+    `)
+      .join("")
+    : `
       <article>
         <span class="status-dot idle"></span>
         <div>
-          <strong>${escapeHtml(server.name)}</strong>
-          <small>${escapeHtml(server.ip)}:${escapeHtml(server.port)}</small>
+          <strong>No players online right now</strong>
+          <small>Registered servers are listed in the full watchlist.</small>
         </div>
-        <em>Pending</em>
+        <em>0 players</em>
       </article>
-    `)
-    .join("");
+    `;
 
   serverTable.innerHTML = servers
     .map((server) => `
-      <article>
-        <span class="status-dot idle"></span>
+      <article class="${server.players > 0 ? "has-players" : ""}">
+        <span class="status-dot ${server.status === "online" ? "online" : "idle"}"></span>
         <strong>${escapeHtml(server.name)}</strong>
-        <small>${escapeHtml(server.ip)}</small>
-        <em>${escapeHtml(server.port)}</em>
-        <b>Pending</b>
+        <small>${escapeHtml(server.ip)}:${escapeHtml(server.port)}</small>
+        <em>${escapeHtml(playerCount(server))}</em>
+        <b>${server.status === "online" ? "Online" : escapeHtml(server.statusText)}</b>
       </article>
     `)
     .join("");
@@ -229,6 +269,7 @@ const renderManagedServers = async () => {
 
 renderManagedNews().then(attachCardTilt);
 renderManagedServers();
+setInterval(renderManagedServers, 30000);
 startTypingWord();
 
 window.addEventListener("storage", (event) => {
