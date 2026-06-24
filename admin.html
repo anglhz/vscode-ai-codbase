@@ -137,7 +137,18 @@
               </label>
               <label>
                 <span>Status</span>
-                <input name="status" placeholder="Open, Draft, Groups..." required />
+                <select name="status">
+                  <option>Open</option>
+                  <option>Registration</option>
+                  <option>Draft</option>
+                  <option>Soon</option>
+                  <option>Live</option>
+                  <option>Groups</option>
+                  <option>Playoffs</option>
+                  <option>Finals</option>
+                  <option>Completed</option>
+                  <option>Cancelled</option>
+                </select>
               </label>
             </div>
             <label>
@@ -151,12 +162,31 @@
               </label>
               <label>
                 <span>Format</span>
-                <input name="format" placeholder="5v5 S&D" />
+                <select name="format">
+                  <option value="">Select format</option>
+                  <option>1v1</option>
+                  <option>2v2</option>
+                  <option>3v3</option>
+                  <option>4v4</option>
+                  <option>5v5 S&D</option>
+                  <option>Rifles only</option>
+                  <option>Mixed modes</option>
+                  <option>LAN</option>
+                </select>
               </label>
             </div>
             <label>
               <span>Stage</span>
-              <input name="stage" placeholder="Registration, Groups, Playoffs..." />
+              <select name="stage">
+                <option value="">Select stage</option>
+                <option>Announcement</option>
+                <option>Registration</option>
+                <option>Check-in</option>
+                <option>Groups</option>
+                <option>Playoffs</option>
+                <option>Grand Final</option>
+                <option>Finished</option>
+              </select>
             </label>
             <label>
               <span>Past result</span>

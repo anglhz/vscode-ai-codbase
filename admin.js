@@ -140,6 +140,15 @@ const clearForm = (form) => {
   form.elements.id.value = "";
 };
 
+const setSelectValue = (select, value) => {
+  if (!select) return;
+  const normalizedValue = String(value || "");
+  if (![...select.options].some((option) => option.value === normalizedValue)) {
+    select.add(new Option(normalizedValue, normalizedValue));
+  }
+  select.value = normalizedValue;
+};
+
 const renderNews = () => {
   if (!newsList) return;
   newsList.innerHTML = newsItems
@@ -376,11 +385,11 @@ document.addEventListener("click", async (event) => {
     eventForm.elements.startDate.value = item.startDate;
     eventForm.elements.endDate.value = item.endDate || "";
     eventForm.elements.type.value = item.type;
-    eventForm.elements.status.value = item.status;
+    setSelectValue(eventForm.elements.status, item.status);
     eventForm.elements.description.value = item.description;
     eventForm.elements.teams.value = item.teams || "";
-    eventForm.elements.stage.value = item.stage || "";
-    eventForm.elements.format.value = item.format || "";
+    setSelectValue(eventForm.elements.stage, item.stage || "");
+    setSelectValue(eventForm.elements.format, item.format || "");
     eventForm.elements.result.value = item.result || "";
     eventForm.elements.link.value = item.link || "";
     eventForm.scrollIntoView({ behavior: "smooth", block: "center" });

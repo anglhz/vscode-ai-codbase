@@ -268,7 +268,7 @@ const renderManagedEvents = async () => {
       <div class="event-main">
         <span class="event-date">No current event</span>
         <h3>No event running.</h3>
-        <p>Add events from the admin panel and they will appear here automatically.</p>
+        <p>New cups, ladders, and LAN updates will be announced here when registration opens.</p>
       </div>
       <div class="event-meta-grid">
         <div><span>Teams</span><strong>-</strong></div>
@@ -295,7 +295,7 @@ const renderManagedEvents = async () => {
         <time>No date</time>
         <div>
           <h4>No upcoming events.</h4>
-          <p>Add future events from the admin panel.</p>
+          <p>Upcoming community events will be posted here soon.</p>
         </div>
         <span>Empty</span>
       </article>
@@ -311,7 +311,7 @@ const renderManagedEvents = async () => {
     : `
       <article class="event-result">
         <strong>No past events yet.</strong>
-        <span>Completed events will appear here.</span>
+        <span>Recent results will be posted here.</span>
       </article>
     `;
 };
@@ -333,7 +333,7 @@ const renderManagedServers = async () => {
     if (serverHeading) serverHeading.textContent = "Servers with players right now.";
     if (serverIntro) {
       serverIntro.textContent =
-        "Servers added in the admin panel will appear here once the live status backend is connected.";
+        "Community servers will appear here with live status as soon as they are listed.";
     }
 
     activeRack.innerHTML = `
@@ -341,7 +341,7 @@ const renderManagedServers = async () => {
         <span class="status-dot idle"></span>
         <div>
           <strong>No servers added yet</strong>
-          <small>Add servers from the admin panel.</small>
+          <small>Community servers will appear here when listed.</small>
         </div>
         <em>Pending</em>
       </article>
@@ -349,8 +349,8 @@ const renderManagedServers = async () => {
     serverTable.innerHTML = `
       <article>
         <span class="status-dot idle"></span>
-        <strong>No servers added yet</strong>
-        <small>Admin managed</small>
+        <strong>No servers listed yet</strong>
+        <small>Community watchlist</small>
         <em>Pending</em>
         <b>Watch</b>
       </article>
