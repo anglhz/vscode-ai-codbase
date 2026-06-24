@@ -250,8 +250,11 @@
   grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
 }
 
-.server-admin-grid {
+.managed-admin-grid {
   align-items: start;
+}
+
+.server-admin-grid {
   grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
 }
 
@@ -300,14 +303,14 @@
   gap: 0.75rem;
 }
 
-.server-admin-grid .admin-form {
+.managed-admin-grid .admin-form {
   max-height: calc(100vh - 6rem);
   overflow: auto;
   position: sticky;
   top: 1rem;
 }
 
-.server-admin-list {
+.managed-admin-list {
   align-content: start;
   max-height: min(58rem, calc(100vh - 6rem));
   overflow: auto;
@@ -315,13 +318,13 @@
   padding-right: 0.8rem;
 }
 
-.server-admin-list::-webkit-scrollbar,
-.server-admin-grid .admin-form::-webkit-scrollbar {
+.managed-admin-list::-webkit-scrollbar,
+.managed-admin-grid .admin-form::-webkit-scrollbar {
   width: 0.55rem;
 }
 
-.server-admin-list::-webkit-scrollbar-thumb,
-.server-admin-grid .admin-form::-webkit-scrollbar-thumb {
+.managed-admin-list::-webkit-scrollbar-thumb,
+.managed-admin-grid .admin-form::-webkit-scrollbar-thumb {
   background: rgba(240, 164, 0, 0.42);
 }
 
@@ -477,14 +480,14 @@
     grid-template-columns: 1fr;
   }
 
-  .server-admin-grid .admin-form,
-  .server-admin-list {
+  .managed-admin-grid .admin-form,
+  .managed-admin-list {
     max-height: none;
     overflow: visible;
     position: static;
   }
 
-  .server-admin-list {
+  .managed-admin-list {
     padding-right: 1.2rem;
   }
 }
