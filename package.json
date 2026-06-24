@@ -1,0 +1,14 @@
+{
+  "name": "codbase-community-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoDBase community website with local API preparation for hosting.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "discord:sync": "node discord-sync.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

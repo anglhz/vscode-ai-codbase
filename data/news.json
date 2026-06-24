@@ -1,0 +1,18 @@
+[
+  {
+    "id": "news-1",
+    "title": "LAN #7 announced for Lodz",
+    "date": "2026-10-20",
+    "category": "Event",
+    "excerpt": "Travel plans, rules, and registration details are being prepared for the next classic LAN.",
+    "source": "admin"
+  },
+  {
+    "id": "news-2",
+    "title": "CoDBase Nations Cup returns",
+    "date": "2026-09-12",
+    "category": "Community",
+    "excerpt": "National teams are forming again for a fast, clean tournament format.",
+    "source": "admin"
+  }
+]

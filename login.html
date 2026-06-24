@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login | CoDBase</title>
+    <link rel="preload" href="assets/hero-codbase.png" as="image" />
+    <link rel="preload" href="assets/codbase-logo-cropped.png" as="image" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="admin-auth-page">
+    <div class="grain" aria-hidden="true"></div>
+    <main class="auth-shell">
+      <section class="auth-panel">
+        <a class="brand auth-brand" href="index.html" aria-label="CoDBase home">
+          <img class="brand-logo" src="assets/codbase-logo-cropped.png" alt="CoDBase" />
+        </a>
+        <div class="auth-copy">
+          <p class="eyebrow">Command Access</p>
+          <h1>Admin login</h1>
+          <p>
+            Manage CoDBase news, live server listings, and TeamSpeak entries
+            from a focused control panel.
+          </p>
+        </div>
+        <form class="auth-form" data-login-form>
+          <label>
+            <span>Username</span>
+            <input name="username" autocomplete="username" value="admin" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input name="password" type="password" autocomplete="current-password" value="codbase" required />
+          </label>
+          <p class="form-message" data-login-message></p>
+          <button class="button button-primary" type="submit">Enter admin panel</button>
+        </form>
+        <div class="auth-meta">
+          <span>Demo credentials: admin / codbase</span>
+          <a href="index.html">Back to front page</a>
+        </div>
+      </section>
+    </main>
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Panel | CoDBase</title>
+    <link rel="preload" href="assets/codbase-logo-cropped.png" as="image" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="admin-page">
+    <div class="grain" aria-hidden="true"></div>
+    <aside class="admin-sidebar">
+      <a class="brand admin-brand" href="index.html" aria-label="CoDBase home">
+        <img class="brand-logo" src="assets/codbase-logo-cropped.png" alt="CoDBase" />
+      </a>
+      <nav class="admin-nav" aria-label="Admin navigation">
+        <a href="#overview">Overview</a>
+        <a href="#news-admin">News</a>
+        <a href="#servers-admin">Servers</a>
+      </nav>
+      <button class="admin-logout" type="button" data-logout>Logout</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" id="overview">
+        <div>
+          <p class="eyebrow">CoDBase Control</p>
+          <h1>Admin panel</h1>
+        </div>
+        <div class="admin-status">
+          <span class="status-dot"></span>
+          <strong>Local draft mode</strong>
+        </div>
+      </header>
+
+      <section class="admin-stats" aria-label="Admin stats">
+        <article>
+          <span>Published news</span>
+          <strong data-news-count>0</strong>
+        </article>
+        <article>
+          <span>Registered servers</span>
+          <strong data-server-count>0</strong>
+        </article>
+        <article>
+          <span>API status</span>
+          <strong data-api-status>Ready</strong>
+        </article>
+      </section>
+
+      <section class="admin-section" id="news-admin">
+        <div class="admin-section-head">
+          <div>
+            <p class="eyebrow">News Desk</p>
+            <h2>Add and edit news</h2>
+          </div>
+          <button class="button button-ghost" type="button" data-reset-news>Reset news</button>
+        </div>
+        <div class="admin-grid">
+          <form class="admin-form" data-news-form>
+            <input type="hidden" name="id" />
+            <label>
+              <span>Title</span>
+              <input name="title" placeholder="LAN #8 announced" required />
+            </label>
+            <label>
+              <span>Date</span>
+              <input name="date" type="date" required />
+            </label>
+            <label>
+              <span>Category</span>
+              <select name="category">
+                <option>News</option>
+                <option>Event</option>
+                <option>Server</option>
+                <option>Community</option>
+              </select>
+            </label>
+            <label>
+              <span>Excerpt</span>
+              <textarea name="excerpt" rows="5" placeholder="Short front-page summary..." required></textarea>
+            </label>
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">Save news</button>
+              <button class="button button-ghost" type="button" data-clear-news>Clear</button>
+            </div>
+          </form>
+          <div class="admin-list" data-news-list aria-label="News entries"></div>
+        </div>
+      </section>
+
+      <section class="admin-section" id="servers-admin">
+        <div class="admin-section-head">
+          <div>
+            <p class="eyebrow">Server Ops</p>
+            <h2>Add, edit, and remove servers</h2>
+          </div>
+          <button class="button button-ghost" type="button" data-reset-servers>Reset servers</button>
+        </div>
+        <div class="admin-grid server-admin-grid">
+          <form class="admin-form" data-server-form>
+            <input type="hidden" name="id" />
+            <label>
+              <span>Name</span>
+              <input name="name" placeholder="CoDBase Cup #1" required />
+            </label>
+            <label>
+              <span>IP / Hostname</span>
+              <input name="ip" placeholder="play.codbase.eu" required />
+            </label>
+            <label>
+              <span>Port</span>
+              <input name="port" type="number" min="1" max="65535" placeholder="28960" required />
+            </label>
+            <p class="admin-form-note">
+              Later this will query CoD getstatus/API data for map, players,
+              max players, ping, and whether it should appear on the front page.
+            </p>
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">Save server</button>
+              <button class="button button-ghost" type="button" data-clear-server>Clear</button>
+            </div>
+          </form>
+          <div class="admin-list" data-server-list aria-label="Server entries"></div>
+        </div>
+      </section>
+    </main>
+    <script src="admin.js"></script>
+  </body>
+</html>
