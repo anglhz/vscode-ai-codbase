@@ -98,7 +98,6 @@ const normalizeServer = (server) => {
 const playerCount = (server) => `${Number(server.players || 0)}/${Number(server.maxPlayers || 0) || "?"}`;
 const serverMeta = (server) => server.map || `${server.ip}:${server.port}`;
 const statusDotClass = (server) => {
-  if (server.type === "teamspeak3" && server.status === "online") return "voice";
   return server.status === "online" ? "online" : "idle";
 };
 const formatDate = (value) => {

@@ -199,13 +199,25 @@ const parseInfoLine = (line) => {
 const parsePlayers = (lines) =>
   lines
     .map((line) => {
-      const match = String(line).match(/^(-?\d+)\s+(-?\d+)\s+"(.*)"$/);
-      if (!match) return null;
+      const value = String(line).trim();
+      if (!value || value.startsWith("\\")) return null;
+
+      const quotedMatch = value.match(/^(-?\d+)\s+(-?\d+)\s+"(.*)"$/);
+      if (quotedMatch) {
+        return {
+          score: Number(quotedMatch[1]),
+          ping: Number(quotedMatch[2]),
+          name: quotedMatch[3],
+        };
+      }
+
+      const looseMatch = value.match(/^(-?\d+)\s+(-?\d+)\s+(.+)$/);
+      if (!looseMatch) return null;
 
       return {
-        score: Number(match[1]),
-        ping: Number(match[2]),
-        name: match[3],
+        score: Number(looseMatch[1]),
+        ping: Number(looseMatch[2]),
+        name: looseMatch[3].replace(/^"|"$/g, ""),
       };
     })
     .filter(Boolean);
@@ -215,8 +227,11 @@ const parseCodStatus = (message) => {
   const lines = text.split(/\r?\n/).filter(Boolean);
   const infoIndex = lines.findIndex((line) => line.startsWith("\\"));
   const info = parseInfoLine(lines[infoIndex] || "");
-  const players = parsePlayers(infoIndex >= 0 ? lines.slice(infoIndex + 1) : []);
-  const maxPlayers = Number(info.sv_maxclients || info.maxclients || info.clients || 0);
+  const playerLines = infoIndex >= 0 ? lines.slice(infoIndex + 1) : [];
+  const players = parsePlayers(playerLines);
+  const privateClients = Number(info.sv_privateclients || 0);
+  const rawMaxPlayers = Number(info.sv_maxclients || info.maxclients || info.clients || 0);
+  const maxPlayers = Number.isFinite(rawMaxPlayers) ? rawMaxPlayers - privateClients : 0;
 
   return {
     status: "online",
@@ -225,8 +240,14 @@ const parseCodStatus = (message) => {
     map: info.mapname || "",
     gameType: info.g_gametype || info.gametype || "",
     players: players.length,
-    maxPlayers,
+    maxPlayers: Math.max(maxPlayers, 0),
     playerList: players,
+    debug: {
+      responseHeader: lines[0] || "",
+      infoKeys: Object.keys(info),
+      playerLineCount: playerLines.length,
+      parsedPlayerCount: players.length,
+    },
   };
 };
 
@@ -237,6 +258,10 @@ const queryCodServer = (server) =>
     const request = Buffer.concat([
       Buffer.from([0xff, 0xff, 0xff, 0xff]),
       Buffer.from("getstatus", "ascii"),
+    ]);
+    const requestWithNewline = Buffer.concat([
+      Buffer.from([0xff, 0xff, 0xff, 0xff]),
+      Buffer.from("getstatus\n", "ascii"),
     ]);
 
     const finish = (status) => {
@@ -257,7 +282,7 @@ const queryCodServer = (server) =>
     };
 
     const timeout = setTimeout(() => {
-      finish({ status: "offline", statusText: "No response" });
+      finish({ status: "offline", statusText: "No response", debug: { query: "getstatus", timeoutMs: codQueryTimeoutMs } });
     }, codQueryTimeoutMs);
 
     socket.once("message", (message) => {
@@ -273,9 +298,106 @@ const queryCodServer = (server) =>
     });
 
     socket.send(request, Number(server.port), server.ip, (error) => {
-      if (error) finish({ status: "offline", statusText: "Query failed" });
+      if (error) finish({ status: "offline", statusText: "Query failed", debug: { message: error.message } });
+    });
+
+    setTimeout(() => {
+      if (settled) return;
+      socket.send(requestWithNewline, Number(server.port), server.ip, (error) => {
+        if (error) finish({ status: "offline", statusText: "Query failed", debug: { message: error.message } });
+      });
+    }, 120);
+  });
+
+const queryCodInfoServer = (server) =>
+  new Promise((resolve) => {
+    const socket = dgram.createSocket("udp4");
+    let settled = false;
+    const request = Buffer.concat([
+      Buffer.from([0xff, 0xff, 0xff, 0xff]),
+      Buffer.from("getinfo xxx", "ascii"),
+    ]);
+
+    const finish = (status) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      socket.close();
+      resolve(status);
+    };
+
+    const timeout = setTimeout(() => {
+      finish(null);
+    }, codQueryTimeoutMs);
+
+    socket.once("message", (message) => {
+      const text = message.toString("latin1").replace(/^\xff\xff\xff\xff/, "");
+      const infoLine = text.split(/\r?\n/).find((line) => line.startsWith("\\")) || "";
+      const info = parseInfoLine(infoLine);
+      finish({
+        players: Number(info.clients || 0),
+        maxPlayers: Number(info.sv_maxclients || info.maxclients || 0),
+        map: info.mapname || "",
+        hostname: info.hostname || info.sv_hostname || "",
+        debug: {
+          responseHeader: text.split(/\r?\n/)[0] || "",
+          source: "getinfo",
+        },
+      });
+    });
+
+    socket.once("error", () => {
+      finish(null);
+    });
+
+    socket.send(request, Number(server.port), server.ip, (error) => {
+      if (error) finish(null);
     });
   });
+
+const queryCodServerWithFallback = async (server) => {
+  const status = await queryCodServer(server);
+  const info = await queryCodInfoServer(server);
+
+  if (!info) return status;
+
+  if (status.status !== "online") {
+    return {
+      ...status,
+      ...info,
+      status: "online",
+      statusText: "Online",
+      debug: {
+        ...(status.debug || {}),
+        ...(info.debug || {}),
+        fallbackUsed: true,
+      },
+    };
+  }
+
+  if (Number(info.players || 0) > Number(status.players || 0)) {
+    return {
+      ...status,
+      players: info.players,
+      maxPlayers: info.maxPlayers || status.maxPlayers,
+      map: status.map || info.map,
+      hostname: status.hostname || info.hostname,
+      debug: {
+        ...(status.debug || {}),
+        getinfoPlayers: info.players,
+        fallbackUsed: true,
+      },
+    };
+  }
+
+  return {
+    ...status,
+    debug: {
+      ...(status.debug || {}),
+      getinfoPlayers: info.players,
+    },
+  };
+};
 
 const unescapeTs3Value = (value) =>
   String(value || "")
@@ -387,7 +509,7 @@ const queryServer = (server) => {
   const clean = cleanServer(server);
   const type = inferServerType(clean);
   const typedServer = { ...clean, type };
-  return type === "teamspeak3" ? queryTs3Server(typedServer) : queryCodServer(typedServer);
+  return type === "teamspeak3" ? queryTs3Server(typedServer) : queryCodServerWithFallback(typedServer);
 };
 
 const readServerStatus = async () => {
