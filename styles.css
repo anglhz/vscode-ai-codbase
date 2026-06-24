@@ -586,14 +586,20 @@ h3 {
   margin-bottom: 3rem;
 }
 
-.intro-grid,
 .news-grid {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(3, 1fr);
 }
 
+.intro-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 0.85fr));
+}
+
 .intro-card,
+.intro-story,
 .news-card,
 .current-event,
 .event-panel,
@@ -603,11 +609,54 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.intro-story {
+  background:
+    linear-gradient(135deg, rgba(240, 164, 0, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 320px;
+  padding: 2rem;
+  position: relative;
+}
+
+.intro-story::before {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 4.5rem),
+    linear-gradient(90deg, rgba(240, 164, 0, 0.42), transparent);
+  content: "";
+  height: 3px;
+  left: 2rem;
+  position: absolute;
+  right: 2rem;
+  top: 2rem;
+}
+
+.intro-story span {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 950;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+.intro-story h3 {
+  font-size: clamp(1.8rem, 3.2vw, 3rem);
+  line-height: 0.95;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
 .intro-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   min-height: 320px;
   overflow: hidden;
   padding: 2rem;
   position: relative;
+  transition: border-color 180ms ease, transform 180ms ease;
 }
 
 .intro-card::before {
@@ -619,6 +668,11 @@ h3 {
   top: -4rem;
   transform: rotate(16deg);
   width: 11rem;
+}
+
+.intro-card:hover {
+  border-color: rgba(240, 164, 0, 0.45);
+  transform: translateY(-3px);
 }
 
 .icon-box {
@@ -652,6 +706,7 @@ h3 {
 }
 
 .intro-card p,
+.intro-story p,
 .event-row p,
 .current-event p,
 .news-body p,
@@ -1611,6 +1666,16 @@ h3 {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 1120px) {
+  .intro-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .intro-story {
+    grid-column: 1 / -1;
   }
 }
 
