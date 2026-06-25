@@ -92,6 +92,7 @@ const eventForm = document.querySelector("[data-event-form]");
 const serverForm = document.querySelector("[data-server-form]");
 const serverTypeInput = document.querySelector("[data-server-type]");
 const queryPortRow = document.querySelector("[data-query-port-row]");
+const tsServerIdRow = document.querySelector("[data-ts-server-id-row]");
 const newsList = document.querySelector("[data-news-list]");
 const eventList = document.querySelector("[data-event-list]");
 const serverList = document.querySelector("[data-server-list]");
@@ -121,6 +122,7 @@ const normalizeServer = (server) => {
       port: Number(server.port),
       type: inferServerType(server),
       queryPort: server.queryPort ? Number(server.queryPort) : undefined,
+      serverId: server.serverId ? Number(server.serverId) : undefined,
     };
   }
 
@@ -136,6 +138,7 @@ const normalizeServer = (server) => {
     port: Number(port) || 28960,
     type: inferServerType({ ...server, port }),
     queryPort: server.queryPort ? Number(server.queryPort) : undefined,
+    serverId: server.serverId ? Number(server.serverId) : undefined,
   };
 };
 
@@ -165,10 +168,14 @@ const setSelectValue = (select, value) => {
 };
 
 const syncServerTypeFields = () => {
-  if (!serverTypeInput || !queryPortRow) return;
+  if (!serverTypeInput || !queryPortRow || !tsServerIdRow) return;
   const isTeamSpeak = serverTypeInput.value === "teamspeak3";
   queryPortRow.hidden = !isTeamSpeak;
-  if (!isTeamSpeak && serverForm) serverForm.elements.queryPort.value = "";
+  tsServerIdRow.hidden = !isTeamSpeak;
+  if (!isTeamSpeak && serverForm) {
+    serverForm.elements.queryPort.value = "";
+    serverForm.elements.serverId.value = "";
+  }
 };
 
 serverTypeInput?.addEventListener("change", syncServerTypeFields);
@@ -241,6 +248,7 @@ const renderServers = () => {
                   <span class="server-address-chip">${escapeHtml(item.ip)}</span>
                   <span class="server-port-chip">${escapeHtml(item.port)}</span>
                   ${item.type === "teamspeak3" && item.queryPort ? `<span class="server-port-chip">Q ${escapeHtml(item.queryPort)}</span>` : ""}
+                  ${item.type === "teamspeak3" && item.serverId ? `<span class="server-port-chip">SID ${escapeHtml(item.serverId)}</span>` : ""}
                 </p>
               </div>
             </div>
@@ -356,6 +364,7 @@ serverForm?.addEventListener("submit", async (event) => {
     port: Number(data.get("port")),
     type: String(data.get("type") || "cod1"),
     queryPort: data.get("queryPort") ? Number(data.get("queryPort")) : undefined,
+    serverId: data.get("serverId") ? Number(data.get("serverId")) : undefined,
   };
   const isExisting = serverItems.some((server) => server.id === item.id);
 
@@ -448,6 +457,7 @@ document.addEventListener("click", async (event) => {
     serverForm.elements.port.value = item.port;
     serverForm.elements.type.value = item.type || "cod1";
     serverForm.elements.queryPort.value = item.queryPort || "";
+    serverForm.elements.serverId.value = item.serverId || "";
     syncServerTypeFields();
     serverForm.scrollIntoView({ behavior: "smooth", block: "center" });
   }

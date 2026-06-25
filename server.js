@@ -175,6 +175,7 @@ const cleanServer = (input) => ({
   port: Number(input.port || 28960),
   type: input.type ? String(input.type) : undefined,
   queryPort: input.queryPort ? Number(input.queryPort) : undefined,
+  serverId: input.serverId ? Number(input.serverId) : undefined,
 });
 
 const inferServerType = (server) => {
@@ -417,10 +418,15 @@ const parseTs3KeyValues = (line) =>
       return values;
     }, {});
 
+const parseTs3ServerList = (response) => {
+  const line = String(response).split(/\r?\n/).find((item) => item.includes("virtualserver_id=")) || "";
+  return line.split("|").map(parseTs3KeyValues);
+};
+
 const parseTs3Status = (response) => {
   const lines = String(response).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  const infoLine = lines.find((line) => line.includes("virtualserver_")) || "";
-  const errorLine = lines.find((line) => line.startsWith("error "));
+  const infoLine = lines.slice().reverse().find((line) => line.includes("virtualserver_")) || "";
+  const errorLine = lines.slice().reverse().find((line) => line.startsWith("error "));
   const info = parseTs3KeyValues(infoLine);
   const error = parseTs3KeyValues(errorLine);
 
@@ -428,6 +434,10 @@ const parseTs3Status = (response) => {
     return {
       status: "offline",
       statusText: error.msg || "Query denied",
+      debug: {
+        queryErrorId: error.id,
+        queryErrorMessage: error.msg || "",
+      },
     };
   }
 
@@ -452,6 +462,7 @@ const queryTs3Server = (server) =>
     const socket = net.createConnection({ host: server.ip, port: Number(server.queryPort || ts3QueryPort) });
     let settled = false;
     let response = "";
+    let phase = "serverlist";
 
     const finish = (status) => {
       if (settled) return;
@@ -468,6 +479,7 @@ const queryTs3Server = (server) =>
         gameType: "voice",
         hostname: "",
         queryPort: Number(server.queryPort || ts3QueryPort),
+        serverId: server.serverId ? Number(server.serverId) : undefined,
         ...status,
       });
     };
@@ -479,12 +491,50 @@ const queryTs3Server = (server) =>
     socket.setEncoding("utf8");
 
     socket.on("connect", () => {
-      socket.write(`use port=${Number(server.port)}\nserverinfo\nquit\n`);
+      if (server.serverId) {
+        phase = "serverinfo";
+        socket.write(`use sid=${Number(server.serverId)}\nserverinfo\nquit\n`);
+        return;
+      }
+
+      socket.write("serverlist\n");
     });
 
     socket.on("data", (chunk) => {
       response += chunk;
-      if (response.includes("virtualserver_") && response.includes("error id=")) {
+
+      if (phase === "serverlist" && response.includes("error id=")) {
+        const errorLine = response.split(/\r?\n/).reverse().find((line) => line.startsWith("error "));
+        const error = parseTs3KeyValues(errorLine);
+
+        if (error.id && error.id !== "0") {
+          phase = "serverinfo";
+          response = "";
+          if (server.serverId) {
+            socket.write(`use sid=${Number(server.serverId)}\nserverinfo\nquit\n`);
+            return;
+          }
+          socket.write(`use port=${Number(server.port)}\nserverinfo\nquit\n`);
+          return;
+        }
+
+        const virtualServer = parseTs3ServerList(response).find((item) => Number(item.virtualserver_port) === Number(server.port));
+        if (!virtualServer?.virtualserver_id) {
+          finish({
+            status: "offline",
+            statusText: "Virtual server not found",
+            debug: { phase, voicePort: Number(server.port), queryPort: Number(server.queryPort || ts3QueryPort) },
+          });
+          return;
+        }
+
+        phase = "serverinfo";
+        response = "";
+        socket.write(`use sid=${virtualServer.virtualserver_id}\nserverinfo\nquit\n`);
+        return;
+      }
+
+      if (phase === "serverinfo" && response.includes("virtualserver_") && response.includes("error id=")) {
         try {
           finish(parseTs3Status(response));
         } catch {

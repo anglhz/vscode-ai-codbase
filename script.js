@@ -74,6 +74,7 @@ const normalizeServer = (server) => {
       gameType: server.gameType || "",
       type: server.type || "cod1",
       queryPort: server.queryPort ? Number(server.queryPort) : undefined,
+      serverId: server.serverId ? Number(server.serverId) : undefined,
     };
   }
 
@@ -94,6 +95,7 @@ const normalizeServer = (server) => {
     gameType: server.gameType || "",
     type: server.type || "cod1",
     queryPort: server.queryPort ? Number(server.queryPort) : undefined,
+    serverId: server.serverId ? Number(server.serverId) : undefined,
   };
 };
 
