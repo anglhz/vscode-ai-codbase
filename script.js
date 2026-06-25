@@ -128,7 +128,8 @@ const formatEventResult = (value) => {
 
   if (winnerMatch) {
     return `
-      <span class="event-result-label">Winner</span>
+      <span class="event-result-cup" aria-hidden="true"></span>
+      <span class="event-result-label">Winners</span>
       <span class="event-result-value">${escapeHtml(winnerMatch[1])}</span>
     `;
   }

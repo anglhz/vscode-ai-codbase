@@ -890,6 +890,23 @@ h3 {
   text-transform: uppercase;
 }
 
+.event-result-cup {
+  border: 2px solid var(--gold);
+  display: block;
+  height: 1.35rem;
+  margin-bottom: 0.18rem;
+  position: relative;
+  width: 1.35rem;
+}
+
+.event-result-cup::before {
+  background: var(--gold);
+  clip-path: polygon(18% 16%, 82% 16%, 72% 55%, 58% 55%, 58% 72%, 74% 72%, 74% 84%, 26% 84%, 26% 72%, 42% 72%, 42% 55%, 28% 55%);
+  content: "";
+  inset: 0.18rem;
+  position: absolute;
+}
+
 .event-result-value {
   color: var(--ink);
   font-weight: 950;
