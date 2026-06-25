@@ -63,9 +63,9 @@ This is intentionally simple. Later we can replace the JSON files with SQLite wi
 
 ## Server Status
 
-Servers added in the admin panel are queried by the backend. CoD1 servers use UDP `getstatus`. TeamSpeak 3 servers use ServerQuery over TCP, usually port `10011`, then select the virtual server by the voice port you entered in admin.
+Servers added in the admin panel are queried by the backend. CoD1 servers use UDP `getstatus`. TeamSpeak 3 servers use ServerQuery over TCP, usually port `10011`, or the per-server query port entered in admin, then select the virtual server by the voice port.
 
-TeamSpeak rows are detected automatically when the name contains `TeamSpeak`/`TS3` or the voice port is `9987`/`9986`.
+TeamSpeak rows can be selected explicitly in admin. Older rows are still detected automatically when the name contains `TeamSpeak`/`TS3` or the voice port is `9987`/`9986`.
 
 The homepage uses:
 

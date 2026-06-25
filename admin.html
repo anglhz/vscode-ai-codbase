@@ -221,6 +221,13 @@
               <input name="name" placeholder="Public Server" required />
             </label>
             <label>
+              <span>Server type</span>
+              <select name="type" data-server-type>
+                <option value="cod1">Call of Duty 1</option>
+                <option value="teamspeak3">TeamSpeak 3</option>
+              </select>
+            </label>
+            <label>
               <span>IP / Hostname</span>
               <input name="ip" placeholder="play.codbase.eu" required />
             </label>
@@ -228,8 +235,12 @@
               <span>Port</span>
               <input name="port" type="number" min="1" max="65535" placeholder="28960" required />
             </label>
+            <label data-query-port-row hidden>
+              <span>TeamSpeak query port</span>
+              <input name="queryPort" type="number" min="1" max="65535" placeholder="10011" />
+            </label>
             <p class="admin-form-note">
-              CoD and TeamSpeak status is queried from the saved IP and port.
+              CoD uses the game port. TeamSpeak uses the voice port plus the query port.
             </p>
             <div class="form-actions">
               <button class="button button-primary" type="submit">Save server</button>

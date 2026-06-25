@@ -90,6 +90,8 @@ const isAdminPage = document.body.classList.contains("admin-page");
 const newsForm = document.querySelector("[data-news-form]");
 const eventForm = document.querySelector("[data-event-form]");
 const serverForm = document.querySelector("[data-server-form]");
+const serverTypeInput = document.querySelector("[data-server-type]");
+const queryPortRow = document.querySelector("[data-query-port-row]");
 const newsList = document.querySelector("[data-news-list]");
 const eventList = document.querySelector("[data-event-list]");
 const serverList = document.querySelector("[data-server-list]");
@@ -102,6 +104,14 @@ let newsItems = readStore(NEWS_KEY, defaultNews);
 let eventItems = readStore(EVENTS_KEY, defaultEvents);
 let serverItems = readStore(SERVERS_KEY, defaultServers);
 
+const inferServerType = (server) => {
+  const name = String(server.name || "").toLowerCase();
+  const port = Number(server.port);
+  if (server.type) return server.type;
+  if (name.includes("teamspeak") || name.includes("ts3") || port === 9987 || port === 9986) return "teamspeak3";
+  return "cod1";
+};
+
 const normalizeServer = (server) => {
   if (server.ip && server.port) {
     return {
@@ -109,6 +119,8 @@ const normalizeServer = (server) => {
       name: server.name,
       ip: server.ip,
       port: Number(server.port),
+      type: inferServerType(server),
+      queryPort: server.queryPort ? Number(server.queryPort) : undefined,
     };
   }
 
@@ -122,6 +134,8 @@ const normalizeServer = (server) => {
     name: server.name || "Unnamed server",
     ip,
     port: Number(port) || 28960,
+    type: inferServerType({ ...server, port }),
+    queryPort: server.queryPort ? Number(server.queryPort) : undefined,
   };
 };
 
@@ -138,6 +152,7 @@ const syncStats = () => {
 const clearForm = (form) => {
   form.reset();
   form.elements.id.value = "";
+  if (form === serverForm) syncServerTypeFields();
 };
 
 const setSelectValue = (select, value) => {
@@ -148,6 +163,15 @@ const setSelectValue = (select, value) => {
   }
   select.value = normalizedValue;
 };
+
+const syncServerTypeFields = () => {
+  if (!serverTypeInput || !queryPortRow) return;
+  const isTeamSpeak = serverTypeInput.value === "teamspeak3";
+  queryPortRow.hidden = !isTeamSpeak;
+  if (!isTeamSpeak && serverForm) serverForm.elements.queryPort.value = "";
+};
+
+serverTypeInput?.addEventListener("change", syncServerTypeFields);
 
 const renderNews = () => {
   if (!newsList) return;
@@ -212,7 +236,12 @@ const renderServers = () => {
               <div>
                 <small>Position ${index + 1} / Game server registry</small>
                 <h3>${escapeHtml(item.name)}</h3>
-                <p><span class="server-address-chip">${escapeHtml(item.ip)}</span><span class="server-port-chip">${escapeHtml(item.port)}</span></p>
+                <p>
+                  <span class="server-address-chip">${escapeHtml(item.type === "teamspeak3" ? "TeamSpeak 3" : "CoD1")}</span>
+                  <span class="server-address-chip">${escapeHtml(item.ip)}</span>
+                  <span class="server-port-chip">${escapeHtml(item.port)}</span>
+                  ${item.type === "teamspeak3" && item.queryPort ? `<span class="server-port-chip">Q ${escapeHtml(item.queryPort)}</span>` : ""}
+                </p>
               </div>
             </div>
             <div class="admin-item-actions">
@@ -325,6 +354,8 @@ serverForm?.addEventListener("submit", async (event) => {
     name: String(data.get("name")).trim(),
     ip: String(data.get("ip")).trim(),
     port: Number(data.get("port")),
+    type: String(data.get("type") || "cod1"),
+    queryPort: data.get("queryPort") ? Number(data.get("queryPort")) : undefined,
   };
   const isExisting = serverItems.some((server) => server.id === item.id);
 
@@ -415,6 +446,9 @@ document.addEventListener("click", async (event) => {
     serverForm.elements.name.value = item.name;
     serverForm.elements.ip.value = item.ip;
     serverForm.elements.port.value = item.port;
+    serverForm.elements.type.value = item.type || "cod1";
+    serverForm.elements.queryPort.value = item.queryPort || "";
+    syncServerTypeFields();
     serverForm.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 

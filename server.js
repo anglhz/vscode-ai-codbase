@@ -174,6 +174,7 @@ const cleanServer = (input) => ({
   ip: String(input.ip || "server.codbase.eu").trim(),
   port: Number(input.port || 28960),
   type: input.type ? String(input.type) : undefined,
+  queryPort: input.queryPort ? Number(input.queryPort) : undefined,
 });
 
 const inferServerType = (server) => {
@@ -448,7 +449,7 @@ const parseTs3Status = (response) => {
 
 const queryTs3Server = (server) =>
   new Promise((resolve) => {
-    const socket = net.createConnection({ host: server.ip, port: ts3QueryPort });
+    const socket = net.createConnection({ host: server.ip, port: Number(server.queryPort || ts3QueryPort) });
     let settled = false;
     let response = "";
 
@@ -466,6 +467,7 @@ const queryTs3Server = (server) =>
         map: "TeamSpeak 3",
         gameType: "voice",
         hostname: "",
+        queryPort: Number(server.queryPort || ts3QueryPort),
         ...status,
       });
     };
