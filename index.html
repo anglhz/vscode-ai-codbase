@@ -203,17 +203,12 @@
           <h2>Classic CoD action, right from the scene.</h2>
         </div>
         <div class="video-shell reveal">
-          <iframe
-            src="https://www.youtube.com/embed/NA7okAG1Qp4?rel=0"
-            title="YouTube video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerpolicy="origin-when-cross-origin"
-            allowfullscreen
-          ></iframe>
-          <div class="video-fallback">
-            <span>If the embed is blocked locally, open it on YouTube.</span>
-            <a href="https://www.youtube.com/watch?v=NA7okAG1Qp4" target="_blank" rel="noreferrer">Watch on YouTube</a>
-          </div>
+          <button class="video-launch" type="button" data-video-open aria-label="Play CoDBase community footage">
+            <span class="video-play" aria-hidden="true"></span>
+            <span>Community footage</span>
+            <strong>Watch classic CoD action</strong>
+          </button>
+          <a class="video-direct-link" href="https://www.youtube.com/watch?v=NA7okAG1Qp4" target="_blank" rel="noreferrer">Open on YouTube</a>
         </div>
       </section>
 
@@ -313,7 +308,7 @@
             <button class="button button-primary" type="submit">Send message</button>
             <a class="button button-ghost" href="https://discord.gg/Zh8DP7c" target="_blank" rel="noreferrer">Open Discord</a>
           </div>
-          <p class="contact-note" data-contact-note>Form opens your email app for now.</p>
+          <p class="contact-note" data-contact-note>Messages go directly to CoDBase.</p>
         </form>
       </div>
     </section>
@@ -325,6 +320,14 @@
         <span data-news-modal-meta></span>
         <h2 id="news-modal-title" data-news-modal-title></h2>
         <div class="news-modal-content" data-news-modal-content></div>
+      </article>
+    </div>
+
+    <div class="video-modal" data-video-modal hidden>
+      <div class="news-modal-backdrop" data-video-close></div>
+      <article class="video-modal-panel" role="dialog" aria-modal="true" aria-label="CoDBase video player">
+        <button class="news-modal-close" type="button" data-video-close aria-label="Close video">Close</button>
+        <div class="video-modal-frame" data-video-frame></div>
       </article>
     </div>
 

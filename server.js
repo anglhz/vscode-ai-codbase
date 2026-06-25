@@ -4,6 +4,13 @@ const path = require("path");
 const crypto = require("crypto");
 const dgram = require("dgram");
 const net = require("net");
+let nodemailer = null;
+
+try {
+  nodemailer = require("nodemailer");
+} catch {
+  nodemailer = null;
+}
 
 const root = __dirname;
 const dataDir = path.join(root, "data");
@@ -16,6 +23,7 @@ const codQueryTimeoutMs = Number(process.env.COD_QUERY_TIMEOUT_MS || 900);
 const ts3QueryPort = Number(process.env.TS3_QUERY_PORT || 10011);
 const ts3QueryTimeoutMs = Number(process.env.TS3_QUERY_TIMEOUT_MS || 1500);
 const serverStatusCacheMs = Number(process.env.SERVER_STATUS_CACHE_MS || 15000);
+const contactTo = process.env.CONTACT_TO || "codbaseofficial@gmail.com";
 const sessions = new Map();
 const serverStatusCache = {
   key: "",
@@ -27,6 +35,7 @@ const defaults = {
   news: [],
   events: [],
   servers: [],
+  "contact-messages": [],
 };
 
 const mimeTypes = {
@@ -59,6 +68,45 @@ const readBody = async (req) => {
   for await (const chunk of req) chunks.push(chunk);
   if (!chunks.length) return {};
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+};
+
+const escapeEmailText = (value) => String(value || "").replace(/\r/g, "").trim();
+
+const smtpConfig = () => {
+  if (!nodemailer || !process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+
+  return {
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || "").toLowerCase() === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  };
+};
+
+const sendContactMail = async ({ name, email, subject, message }) => {
+  const config = smtpConfig();
+  if (!config) {
+    const error = new Error("Contact mail is not configured");
+    error.code = "MAIL_NOT_CONFIGURED";
+    throw error;
+  }
+
+  const transporter = nodemailer.createTransport(config);
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || `"CoDBase Contact" <${config.auth.user}>`,
+    to: contactTo,
+    replyTo: `${name} <${email}>`,
+    subject: `[CoDBase] ${subject}`,
+    text: [
+      message,
+      "",
+      `Name: ${name}`,
+      `Email: ${email}`,
+    ].join("\n"),
+  });
 };
 
 const parseCookies = (req) =>
@@ -177,6 +225,41 @@ const cleanServer = (input) => ({
   queryPort: input.queryPort ? Number(input.queryPort) : undefined,
   serverId: input.serverId ? Number(input.serverId) : undefined,
 });
+
+const cleanContactMessage = (input) => ({
+  id: uid("contact"),
+  createdAt: new Date().toISOString(),
+  name: escapeEmailText(input.name).slice(0, 120),
+  email: escapeEmailText(input.email).slice(0, 180),
+  subject: escapeEmailText(input.subject || "CoDBase contact").slice(0, 180),
+  message: escapeEmailText(input.message).slice(0, 4000),
+});
+
+const routeContact = async (req, res, pathname) => {
+  if (req.method !== "POST" || pathname !== "/api/contact") return false;
+
+  const message = cleanContactMessage(await readBody(req));
+  if (!message.name || !message.email || !message.subject || !message.message) {
+    sendJson(res, 400, { error: "Missing required contact fields" });
+    return true;
+  }
+
+  const messages = await readCollection("contact-messages");
+  messages.unshift(message);
+  await writeCollection("contact-messages", messages.slice(0, 250));
+
+  try {
+    await sendContactMail(message);
+    sendJson(res, 200, { ok: true });
+  } catch (error) {
+    console.error("Contact mail failed:", error.message);
+    sendJson(res, error.code === "MAIL_NOT_CONFIGURED" ? 503 : 502, {
+      error: error.code === "MAIL_NOT_CONFIGURED" ? "Contact mail is not configured" : "Could not send contact mail",
+    });
+  }
+
+  return true;
+};
 
 const inferServerType = (server) => {
   const name = String(server.name || "").toLowerCase();
@@ -619,6 +702,7 @@ const routeAuth = async (req, res, pathname) => {
 
 const routeApi = async (req, res, pathname) => {
   if (await routeAuth(req, res, pathname)) return;
+  if (await routeContact(req, res, pathname)) return;
 
   const parts = pathname.split("/").filter(Boolean);
   const collection = parts[1];

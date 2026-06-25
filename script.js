@@ -5,6 +5,8 @@ const serverPanel = document.querySelector("[data-server-panel]");
 const typingWord = document.querySelector("[data-typing-word]");
 const contactForm = document.querySelector("[data-contact-form]");
 const contactNote = document.querySelector("[data-contact-note]");
+const videoModal = document.querySelector("[data-video-modal]");
+const videoFrame = document.querySelector("[data-video-frame]");
 const newsModal = document.querySelector("[data-news-modal]");
 const newsModalMeta = document.querySelector("[data-news-modal-meta]");
 const newsModalTitle = document.querySelector("[data-news-modal-title]");
@@ -148,6 +150,28 @@ const closeNewsModal = () => {
   if (!newsModal) return;
   newsModal.hidden = true;
   document.body.classList.remove("modal-open");
+};
+
+const closeVideoModal = () => {
+  if (!videoModal || !videoFrame) return;
+  videoModal.hidden = true;
+  videoFrame.innerHTML = "";
+  document.body.classList.remove("modal-open");
+};
+
+const openVideoModal = () => {
+  if (!videoModal || !videoFrame) return;
+  videoFrame.innerHTML = `
+    <iframe
+      src="https://www.youtube.com/embed/NA7okAG1Qp4?autoplay=1&rel=0"
+      title="CoDBase community footage"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="origin-when-cross-origin"
+      allowfullscreen
+    ></iframe>
+  `;
+  videoModal.hidden = false;
+  document.body.classList.add("modal-open");
 };
 
 const openNewsModal = (item) => {
@@ -512,28 +536,43 @@ document.addEventListener("click", (event) => {
   }
 
   if (target.matches("[data-news-close]")) closeNewsModal();
+  if (target.matches("[data-video-open]")) openVideoModal();
+  if (target.matches("[data-video-close]")) closeVideoModal();
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeNewsModal();
+  if (event.key === "Escape") {
+    closeNewsModal();
+    closeVideoModal();
+  }
 });
 
-contactForm?.addEventListener("submit", (event) => {
+contactForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(contactForm);
   const name = String(data.get("name") || "").trim();
   const email = String(data.get("email") || "").trim();
   const subject = String(data.get("subject") || "CoDBase contact").trim();
   const message = String(data.get("message") || "").trim();
-  const body = [
-    message,
-    "",
-    `Name: ${name}`,
-    `Email: ${email}`,
-  ].join("\n");
 
-  window.location.href = `mailto:codbaseofficial@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  if (contactNote) contactNote.textContent = "Opening your email app...";
+  if (contactNote) contactNote.textContent = "Sending message...";
+
+  try {
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, subject, message }),
+    });
+
+    if (!response.ok) throw new Error("Contact request failed");
+    contactForm.reset();
+    if (contactNote) contactNote.textContent = "Message sent. We will get back to you soon.";
+  } catch {
+    if (contactNote) {
+      contactNote.textContent =
+        "Could not send right now. Please email codbaseofficial@gmail.com or join Discord.";
+    }
+  }
 });
 
 document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));

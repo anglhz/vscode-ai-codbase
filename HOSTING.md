@@ -20,6 +20,7 @@ The backend exposes:
 GET    /api/session
 POST   /api/login
 POST   /api/logout
+POST   /api/contact
 
 GET    /api/news
 POST   /api/news
@@ -50,6 +51,38 @@ NODE_ENV=production
 ADMIN_USERNAME=your-admin-name
 ADMIN_PASSWORD=a-long-unique-password
 ADMIN_SESSION_TTL_MS=43200000
+```
+
+## Contact Form
+
+Install dependencies after deploying:
+
+```bash
+npm install
+```
+
+The contact form posts to:
+
+```text
+POST /api/contact
+```
+
+For Gmail, create a Google app password and set:
+
+```text
+CONTACT_TO=codbaseofficial@gmail.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=codbaseofficial@gmail.com
+SMTP_PASS=your-google-app-password
+SMTP_FROM="CoDBase Contact <codbaseofficial@gmail.com>"
+```
+
+Contact messages are also stored in:
+
+```text
+data/contact-messages.json
 ```
 
 Data is stored in:
