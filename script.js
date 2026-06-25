@@ -15,6 +15,26 @@ const NEWS_KEY = "codbase_admin_news";
 const EVENTS_KEY = "codbase_admin_events";
 const SERVERS_KEY = "codbase_admin_servers";
 let managedNews = [];
+let revealObserver;
+
+const observeReveals = (scope = document) => {
+  if (!revealObserver) return;
+
+  const root = scope instanceof Element ? scope : document;
+  const elements = [
+    ...(root.matches?.(".reveal") ? [root] : []),
+    ...root.querySelectorAll(".reveal"),
+  ];
+
+  elements.forEach((element, index) => {
+    if (!element.dataset.revealReady) {
+      element.style.setProperty("--reveal-delay", `${Math.min(index * 70, 280)}ms`);
+      element.dataset.revealReady = "true";
+    }
+
+    revealObserver.observe(element);
+  });
+};
 
 const escapeHtml = (value) =>
   String(value).replace(/[&<>"']/g, (char) => (
@@ -246,12 +266,13 @@ const renderManagedNews = async () => {
 
   if (!news?.length) {
     newsGrid.innerHTML = `
-      <article class="empty-state reveal is-visible">
+      <article class="empty-state reveal">
         <span>News room</span>
         <h3>No news posted yet.</h3>
         <p>Fresh updates will appear here as soon as they are published.</p>
       </article>
     `;
+    observeReveals(newsGrid);
     return;
   }
 
@@ -262,7 +283,7 @@ const renderManagedNews = async () => {
 
   newsGrid.innerHTML = managedNews
     .map((item, index) => `
-      <article class="news-card reveal is-visible">
+      <article class="news-card reveal">
         <div class="news-media ${mediaClasses[index % mediaClasses.length]}"></div>
         <div class="news-body">
           <span>${escapeHtml(item.date || "Draft")} / ${escapeHtml(item.category || "News")}</span>
@@ -273,6 +294,7 @@ const renderManagedNews = async () => {
       </article>
     `)
     .join("");
+  observeReveals(newsGrid);
 };
 
 const renderManagedEvents = async () => {
@@ -322,7 +344,7 @@ const renderManagedEvents = async () => {
 
   upcomingPanel.innerHTML = upcoming.length
     ? upcoming.map((event) => `
-      <article class="event-row">
+      <article class="event-row reveal">
         <time datetime="${escapeHtml(event.startDate)}">${escapeHtml(formatDate(event.startDate))}</time>
         <div>
           <h4>${escapeHtml(event.title)}</h4>
@@ -332,7 +354,7 @@ const renderManagedEvents = async () => {
       </article>
     `).join("")
     : `
-      <article class="event-row">
+      <article class="event-row reveal">
         <time>No date</time>
         <div>
           <h4>No upcoming events.</h4>
@@ -344,17 +366,20 @@ const renderManagedEvents = async () => {
 
   pastPanel.innerHTML = past.length
     ? past.map((event) => `
-      <article class="event-result">
+      <article class="event-result reveal">
         <strong>${escapeHtml(event.title)}</strong>
         <span class="event-result-meta">${formatEventResult(event.result || event.status || "Completed")}</span>
       </article>
     `).join("")
     : `
-      <article class="event-result">
+      <article class="event-result reveal">
         <strong>No past events yet.</strong>
         <span>Recent results will be posted here.</span>
       </article>
     `;
+
+  observeReveals(upcomingPanel);
+  observeReveals(pastPanel);
 };
 
 const renderManagedServers = async () => {
@@ -378,7 +403,7 @@ const renderManagedServers = async () => {
     }
 
     activeRack.innerHTML = `
-      <article>
+      <article class="reveal">
         <span class="status-dot idle"></span>
         <div>
           <strong>No servers added yet</strong>
@@ -388,7 +413,7 @@ const renderManagedServers = async () => {
       </article>
     `;
     serverTable.innerHTML = `
-      <article>
+      <article class="reveal">
         <span class="status-dot idle"></span>
         <strong>No servers listed yet</strong>
         <small>Community watchlist</small>
@@ -396,6 +421,8 @@ const renderManagedServers = async () => {
         <b>Watch</b>
       </article>
     `;
+    observeReveals(activeRack);
+    observeReveals(serverTable);
     return;
   }
 
@@ -414,7 +441,7 @@ const renderManagedServers = async () => {
   activeRack.innerHTML = activeServers.length
     ? activeServers
       .map((server) => `
-      <article>
+      <article class="reveal">
         <span class="status-dot ${statusDotClass(server)}"></span>
         <div>
           <strong>${escapeHtml(server.name)}</strong>
@@ -425,7 +452,7 @@ const renderManagedServers = async () => {
     `)
       .join("")
     : `
-      <article>
+      <article class="reveal">
         <span class="status-dot idle"></span>
         <div>
           <strong>No players online right now</strong>
@@ -437,7 +464,7 @@ const renderManagedServers = async () => {
 
   serverTable.innerHTML = servers
     .map((server) => `
-      <article class="${server.players > 0 ? "has-players" : ""} ${server.type === "teamspeak3" ? "voice-server" : ""}">
+      <article class="reveal ${server.players > 0 ? "has-players" : ""} ${server.type === "teamspeak3" ? "voice-server" : ""}">
         <span class="status-dot ${statusDotClass(server)}"></span>
         <strong>${escapeHtml(server.name)}</strong>
         <small>${escapeHtml(server.ip)}:${escapeHtml(server.port)}</small>
@@ -446,13 +473,9 @@ const renderManagedServers = async () => {
       </article>
     `)
     .join("");
+  observeReveals(activeRack);
+  observeReveals(serverTable);
 };
-
-renderManagedNews().then(attachCardTilt);
-renderManagedEvents();
-renderManagedServers();
-setInterval(renderManagedServers, 30000);
-startTypingWord();
 
 window.addEventListener("storage", (event) => {
   if (event.key === NEWS_KEY) {
@@ -492,7 +515,7 @@ const counterObserver = new IntersectionObserver(
   { threshold: 0.6 },
 );
 
-const revealObserver = new IntersectionObserver(
+revealObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) entry.target.classList.add("is-visible");
@@ -501,6 +524,12 @@ const revealObserver = new IntersectionObserver(
   { rootMargin: "0px 0px -8% 0px", threshold: 0.18 },
 );
 
+renderManagedNews().then(attachCardTilt);
+renderManagedEvents();
+renderManagedServers();
+setInterval(renderManagedServers, 30000);
+startTypingWord();
+observeReveals();
 attachCardTilt();
 
 window.addEventListener("scroll", () => {
@@ -575,5 +604,4 @@ contactForm?.addEventListener("submit", async (event) => {
   }
 });
 
-document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));
 counters.forEach((counter) => counterObserver.observe(counter));
