@@ -527,7 +527,7 @@ contactForm?.addEventListener("submit", (event) => {
     `Email: ${email}`,
   ].join("\n");
 
-  window.location.href = `mailto:contact@codbase.eu?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = `mailto:codbaseofficial@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   if (contactNote) contactNote.textContent = "Opening your email app...";
 });
 
