@@ -728,12 +728,24 @@ h3 {
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
 }
 
+.events-layout.no-current-event {
+  grid-template-columns: 1fr;
+}
+
+.events-layout.no-current-event .event-stack {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .current-event {
   display: grid;
   gap: 1.5rem;
   overflow: hidden;
   padding: 2rem;
   position: relative;
+}
+
+.current-event[hidden] {
+  display: none;
 }
 
 .current-event::before {
@@ -1833,6 +1845,7 @@ h3 {
   .mission-panel,
   .intro-grid,
   .events-layout,
+  .events-layout.no-current-event .event-stack,
   .news-grid,
   .server-strip,
   .contact-inner {

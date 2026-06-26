@@ -299,10 +299,11 @@ const renderManagedNews = async () => {
 
 const renderManagedEvents = async () => {
   const events = await fetchManagedList("/api/events", EVENTS_KEY);
+  const eventsLayout = document.querySelector(".events-layout");
   const currentPanel = document.querySelector("[data-current-event]");
   const upcomingPanel = document.querySelector("[data-upcoming-events]");
   const pastPanel = document.querySelector("[data-past-events]");
-  if (!currentPanel || !upcomingPanel || !pastPanel) return;
+  if (!eventsLayout || !currentPanel || !upcomingPanel || !pastPanel) return;
 
   const today = localDateKey();
   const items = (events || []).slice();
@@ -311,6 +312,8 @@ const renderManagedEvents = async () => {
   const past = items.filter((event) => isPastEvent(event, today)).sort((a, b) => eventEnd(b).localeCompare(eventEnd(a))).slice(0, 4);
 
   if (current) {
+    eventsLayout.classList.remove("no-current-event");
+    currentPanel.hidden = false;
     currentPanel.innerHTML = `
       <div class="event-status">Current event</div>
       <div class="event-main">
@@ -326,20 +329,9 @@ const renderManagedEvents = async () => {
       <a class="button button-primary" href="${escapeHtml(current.link || "#news")}">View updates</a>
     `;
   } else {
-    currentPanel.innerHTML = `
-      <div class="event-status">Current event</div>
-      <div class="event-main">
-        <span class="event-date">No current event</span>
-        <h3>No event running.</h3>
-        <p>New cups, ladders, and LAN updates will be announced here when registration opens.</p>
-      </div>
-      <div class="event-meta-grid">
-        <div><span>Teams</span><strong>-</strong></div>
-        <div><span>Stage</span><strong>-</strong></div>
-        <div><span>Format</span><strong>-</strong></div>
-      </div>
-      <a class="button button-primary" href="#contact">Suggest event</a>
-    `;
+    eventsLayout.classList.add("no-current-event");
+    currentPanel.hidden = true;
+    currentPanel.innerHTML = "";
   }
 
   upcomingPanel.innerHTML = upcoming.length
