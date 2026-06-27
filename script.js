@@ -83,6 +83,29 @@ const fetchServerStatus = async () => {
   return readStore(SERVERS_KEY);
 };
 
+const hashString = (value) => {
+  let hash = 0;
+  String(value).split("").forEach((char) => {
+    hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+  });
+  return Math.abs(hash);
+};
+
+const newsMediaMarkup = (item) => {
+  const image = String(item.image || "").trim();
+  if (image) {
+    return `
+      <div class="news-media custom-news-media">
+        <img src="${escapeHtml(image)}" alt="" loading="lazy" />
+      </div>
+    `;
+  }
+
+  const mediaClasses = ["medal-media", "cup-media", "server-media", "bracket-media", "lan-media"];
+  const mediaClass = mediaClasses[hashString(item.id || item.title || item.date) % mediaClasses.length];
+  return `<div class="news-media ${mediaClass}"></div>`;
+};
+
 const normalizeServer = (server) => {
   if (server.ip && server.port) {
     return {
@@ -277,7 +300,6 @@ const renderManagedNews = async () => {
     return;
   }
 
-  const mediaClasses = ["medal-media", "cup-media", "server-media"];
   managedNews = news
     .slice()
     .sort((a, b) => String(b.date).localeCompare(String(a.date)));
@@ -286,9 +308,9 @@ const renderManagedNews = async () => {
   const hiddenCount = Math.max(managedNews.length - 3, 0);
 
   newsGrid.innerHTML = visibleNews
-    .map((item, index) => `
+    .map((item) => `
       <article class="news-card reveal">
-        <div class="news-media ${mediaClasses[index % mediaClasses.length]}"></div>
+        ${newsMediaMarkup(item)}
         <div class="news-body">
           <span>${escapeHtml(item.date || "Draft")} / ${escapeHtml(item.category || "News")}</span>
           <h3>${escapeHtml(item.title || "Untitled news")}</h3>

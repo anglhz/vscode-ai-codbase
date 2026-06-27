@@ -195,6 +195,7 @@ const cleanNews = (input) => ({
   title: String(input.title || "Untitled news").trim(),
   date: String(input.date || new Date().toISOString().slice(0, 10)),
   category: String(input.category || "News").trim(),
+  image: String(input.image || "").trim(),
   excerpt: String(input.excerpt || "").trim(),
   body: String(input.body || input.excerpt || "").trim(),
   source: String(input.source || "admin"),

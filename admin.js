@@ -192,6 +192,7 @@ const renderNews = () => {
               <small>${escapeHtml(item.category)} / ${escapeHtml(item.date)}</small>
               <h3>${escapeHtml(item.title)}</h3>
               <p>${escapeHtml(item.excerpt)}</p>
+              <small>${item.image ? `Custom image / ${escapeHtml(item.image)}` : "Generated image fallback"}</small>
               <small>${escapeHtml(item.body ? `${item.body.length} article characters` : "Excerpt only")}</small>
             </div>
             <div class="admin-item-actions">
@@ -292,6 +293,7 @@ newsForm?.addEventListener("submit", async (event) => {
     title: String(data.get("title")).trim(),
     date: String(data.get("date")),
     category: String(data.get("category")),
+    image: String(data.get("image") || "").trim(),
     excerpt: String(data.get("excerpt")).trim(),
     body: String(data.get("body")).trim(),
   };
@@ -399,6 +401,7 @@ document.addEventListener("click", async (event) => {
     newsForm.elements.title.value = item.title;
     newsForm.elements.date.value = item.date;
     newsForm.elements.category.value = item.category;
+    newsForm.elements.image.value = item.image || "";
     newsForm.elements.excerpt.value = item.excerpt;
     newsForm.elements.body.value = item.body || item.excerpt || "";
     newsForm.scrollIntoView({ behavior: "smooth", block: "center" });
