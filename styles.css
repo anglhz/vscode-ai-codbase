@@ -834,6 +834,33 @@ h3 {
   overflow: hidden;
 }
 
+.event-winner-group + .event-winner-group {
+  border-top: 1px solid var(--line);
+}
+
+.event-winner-head {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.035);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.1rem;
+}
+
+.event-winner-head span {
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.event-winner-head small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .event-panel-head {
   background:
     linear-gradient(90deg, rgba(240, 164, 0, 0.12), transparent),
@@ -855,6 +882,25 @@ h3 {
   gap: 1rem;
   grid-template-columns: 4.5rem minmax(0, 1fr) auto;
   padding: 1rem 1.1rem;
+}
+
+.current-event[data-event-open],
+.event-row[data-event-open],
+.event-result[data-event-open] {
+  cursor: pointer;
+}
+
+.current-event[data-event-open]:hover,
+.event-row[data-event-open]:hover,
+.event-result[data-event-open]:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.current-event[data-event-open]:focus-visible,
+.event-row[data-event-open]:focus-visible,
+.event-result[data-event-open]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
 }
 
 .event-row:last-child,
@@ -935,6 +981,33 @@ h3 {
   color: var(--ink);
   font-weight: 950;
   text-transform: uppercase;
+}
+
+.event-detail-grid {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 1.4rem;
+}
+
+.event-detail-grid div {
+  background: rgba(255, 255, 255, 0.052);
+  padding: 0.9rem;
+}
+
+.event-detail-grid span {
+  color: var(--gold);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 950;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+.event-detail-grid strong {
+  color: var(--ink);
+  display: block;
+  line-height: 1.35;
 }
 
 .news-card {
@@ -1135,6 +1208,12 @@ h3 {
 
 .news-modal-content p {
   margin: 0;
+}
+
+.news-modal-content a {
+  color: var(--gold-hot);
+  font-weight: 950;
+  text-transform: uppercase;
 }
 
 .news-modal-close {
@@ -2007,6 +2086,10 @@ h3 {
   }
 
   .event-row {
+    grid-template-columns: 1fr;
+  }
+
+  .event-detail-grid {
     grid-template-columns: 1fr;
   }
 

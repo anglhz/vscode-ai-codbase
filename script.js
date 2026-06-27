@@ -15,6 +15,7 @@ const NEWS_KEY = "codbase_admin_news";
 const EVENTS_KEY = "codbase_admin_events";
 const SERVERS_KEY = "codbase_admin_servers";
 let managedNews = [];
+let managedEvents = [];
 let isNewsExpanded = false;
 let revealObserver;
 
@@ -182,6 +183,39 @@ const formatEventResult = (value) => {
 
   return `<span class="event-result-value">${escapeHtml(result)}</span>`;
 };
+
+const eventWinner = (event) => String(event.result || "").replace(/^winner\s*:\s*/i, "").trim() || "Completed";
+
+const isEventType = (event, type) => String(event.type || "").toLowerCase() === type.toLowerCase();
+
+const formatEventDetail = (event) => {
+  const details = [
+    ["Type", event.type],
+    ["Status", event.status],
+    ["Date", `${event.startDate || ""}${event.endDate && event.endDate !== event.startDate ? ` - ${event.endDate}` : ""}`],
+    ["Teams", event.teams],
+    ["Stage", event.stage],
+    ["Format", event.format],
+    ["Winner", eventWinner(event)],
+  ].filter(([, value]) => String(value || "").trim());
+
+  const detailGrid = details
+    .map(([label, value]) => `
+      <div>
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </div>
+    `)
+    .join("");
+
+  const link = String(event.link || "").trim();
+
+  return `
+    <div class="event-detail-grid">${detailGrid}</div>
+    ${formatArticleBody(event.description || "No extra event information yet.")}
+    ${link ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Open tournament page</a></p>` : ""}
+  `;
+};
 const formatArticleBody = (value) =>
   String(value || "")
     .split(/\n{2,}/)
@@ -224,6 +258,17 @@ const openNewsModal = (item) => {
   newsModalMeta.textContent = `${item.date || "Draft"} / ${item.category || "News"}`;
   newsModalTitle.textContent = item.title || "Untitled news";
   newsModalContent.innerHTML = formatArticleBody(item.body || item.excerpt || "No article text yet.");
+  newsModal.hidden = false;
+  document.body.classList.add("modal-open");
+  newsModal.querySelector("[data-news-close]")?.focus();
+};
+
+const openEventModal = (item) => {
+  if (!newsModal || !newsModalMeta || !newsModalTitle || !newsModalContent) return;
+
+  newsModalMeta.textContent = `${item.type || "Event"} / ${item.startDate || "No date"}`;
+  newsModalTitle.textContent = item.title || "Untitled event";
+  newsModalContent.innerHTML = formatEventDetail(item);
   newsModal.hidden = false;
   document.body.classList.add("modal-open");
   newsModal.querySelector("[data-news-close]")?.focus();
@@ -342,13 +387,19 @@ const renderManagedEvents = async () => {
 
   const today = localDateKey();
   const items = (events || []).slice();
+  managedEvents = items;
   const current = items.filter((event) => isCurrentEvent(event, today)).sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
   const upcoming = items.filter((event) => isUpcomingEvent(event, today)).sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 4);
-  const past = items.filter((event) => isPastEvent(event, today)).sort((a, b) => eventEnd(b).localeCompare(eventEnd(a))).slice(0, 4);
+  const past = items.filter((event) => isPastEvent(event, today)).sort((a, b) => eventEnd(b).localeCompare(eventEnd(a)));
+  const topLanWinners = past.filter((event) => isEventType(event, "LAN")).slice(0, 3);
+  const topMajorCupWinners = past.filter((event) => isEventType(event, "Major Cup")).slice(0, 3);
 
   if (current) {
     eventsLayout.classList.remove("no-current-event");
     currentPanel.hidden = false;
+    currentPanel.dataset.eventOpen = current.id;
+    currentPanel.setAttribute("role", "button");
+    currentPanel.setAttribute("tabindex", "0");
     currentPanel.innerHTML = `
       <div class="event-status">Current event</div>
       <div class="event-main">
@@ -366,12 +417,15 @@ const renderManagedEvents = async () => {
   } else {
     eventsLayout.classList.add("no-current-event");
     currentPanel.hidden = true;
+    currentPanel.removeAttribute("data-event-open");
+    currentPanel.removeAttribute("role");
+    currentPanel.removeAttribute("tabindex");
     currentPanel.innerHTML = "";
   }
 
   upcomingPanel.innerHTML = upcoming.length
     ? upcoming.map((event) => `
-      <article class="event-row reveal">
+      <article class="event-row reveal" role="button" tabindex="0" data-event-open="${escapeHtml(event.id)}">
         <time datetime="${escapeHtml(event.startDate)}">${escapeHtml(formatDate(event.startDate))}</time>
         <div>
           <h4>${escapeHtml(event.title)}</h4>
@@ -391,19 +445,32 @@ const renderManagedEvents = async () => {
       </article>
     `;
 
-  pastPanel.innerHTML = past.length
-    ? past.map((event) => `
-      <article class="event-result reveal">
-        <strong>${escapeHtml(event.title)}</strong>
-        <span class="event-result-meta">${formatEventResult(event.result || event.status || "Completed")}</span>
-      </article>
-    `).join("")
-    : `
-      <article class="event-result reveal">
-        <strong>No past events yet.</strong>
-        <span>Recent results will be posted here.</span>
-      </article>
-    `;
+  const renderWinnerGroup = (title, list) => `
+    <div class="event-winner-group reveal">
+      <div class="event-winner-head">
+        <span>${escapeHtml(title)}</span>
+        <small>${list.length ? "Latest champions" : "No winners yet"}</small>
+      </div>
+      ${list.length
+        ? list.map((event) => `
+          <article class="event-result" role="button" tabindex="0" data-event-open="${escapeHtml(event.id)}">
+            <strong>${escapeHtml(event.title)}</strong>
+            <span class="event-result-meta">${formatEventResult(event.result || event.status || "Completed")}</span>
+          </article>
+        `).join("")
+        : `
+          <article class="event-result">
+            <strong>No results yet.</strong>
+            <span>Winners will be posted here.</span>
+          </article>
+        `}
+    </div>
+  `;
+
+  pastPanel.innerHTML = `
+    ${renderWinnerGroup("Top 3 LAN winners", topLanWinners)}
+    ${renderWinnerGroup("Top 3 Major Cup winners", topMajorCupWinners)}
+  `;
 
   observeReveals(upcomingPanel);
   observeReveals(pastPanel);
@@ -591,6 +658,12 @@ document.addEventListener("click", (event) => {
     if (item) openNewsModal(item);
   }
 
+  const eventTrigger = target.closest("[data-event-open]");
+  if (eventTrigger instanceof HTMLElement) {
+    const item = managedEvents.find((eventItem) => eventItem.id === eventTrigger.dataset.eventOpen);
+    if (item) openEventModal(item);
+  }
+
   if (target.matches("[data-news-toggle]")) {
     isNewsExpanded = !isNewsExpanded;
     renderManagedNews().then(attachCardTilt);
@@ -599,6 +672,19 @@ document.addEventListener("click", (event) => {
   if (target.matches("[data-news-close]")) closeNewsModal();
   if (target.matches("[data-video-open]")) openVideoModal();
   if (target.matches("[data-video-close]")) closeVideoModal();
+});
+
+document.addEventListener("keydown", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  const eventTrigger = target.closest("[data-event-open]");
+  if (!(eventTrigger instanceof HTMLElement)) return;
+
+  event.preventDefault();
+  const item = managedEvents.find((eventItem) => eventItem.id === eventTrigger.dataset.eventOpen);
+  if (item) openEventModal(item);
 });
 
 document.addEventListener("keydown", (event) => {
