@@ -15,6 +15,7 @@ const NEWS_KEY = "codbase_admin_news";
 const EVENTS_KEY = "codbase_admin_events";
 const SERVERS_KEY = "codbase_admin_servers";
 let managedNews = [];
+let isNewsExpanded = false;
 let revealObserver;
 
 const observeReveals = (scope = document) => {
@@ -281,7 +282,10 @@ const renderManagedNews = async () => {
     .slice()
     .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
-  newsGrid.innerHTML = managedNews
+  const visibleNews = isNewsExpanded ? managedNews : managedNews.slice(0, 3);
+  const hiddenCount = Math.max(managedNews.length - 3, 0);
+
+  newsGrid.innerHTML = visibleNews
     .map((item, index) => `
       <article class="news-card reveal">
         <div class="news-media ${mediaClasses[index % mediaClasses.length]}"></div>
@@ -293,7 +297,16 @@ const renderManagedNews = async () => {
         </div>
       </article>
     `)
-    .join("");
+    .join("") +
+    (hiddenCount > 0
+      ? `
+        <div class="news-more reveal">
+          <button class="button ${isNewsExpanded ? "button-ghost" : "button-primary"}" type="button" data-news-toggle>
+            ${isNewsExpanded ? "Show less news" : `Show ${hiddenCount} more ${hiddenCount === 1 ? "article" : "articles"}`}
+          </button>
+        </div>
+      `
+      : "");
   observeReveals(newsGrid);
 };
 
@@ -554,6 +567,11 @@ document.addEventListener("click", (event) => {
   if (newsId) {
     const item = managedNews.find((news) => news.id === newsId);
     if (item) openNewsModal(item);
+  }
+
+  if (target.matches("[data-news-toggle]")) {
+    isNewsExpanded = !isNewsExpanded;
+    renderManagedNews().then(attachCardTilt);
   }
 
   if (target.matches("[data-news-close]")) closeNewsModal();
