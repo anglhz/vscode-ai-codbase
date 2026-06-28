@@ -121,6 +121,8 @@
     linear-gradient(180deg, #0b0c0a, #12140f);
   display: grid;
   grid-template-columns: 17rem 1fr;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .admin-sidebar {
@@ -174,6 +176,7 @@
 .admin-main {
   display: grid;
   gap: 1.5rem;
+  min-width: 0;
   padding: clamp(1rem, 3vw, 2rem);
 }
 
@@ -228,6 +231,7 @@
 .admin-section {
   display: grid;
   gap: 1px;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -247,7 +251,8 @@
 .admin-grid {
   display: grid;
   gap: 1px;
-  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+  min-width: 0;
 }
 
 .managed-admin-grid {
@@ -255,7 +260,7 @@
 }
 
 .server-admin-grid {
-  grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
 }
 
 .admin-form,
@@ -275,10 +280,16 @@
   padding: 0.85rem 1rem;
 }
 
+.admin-form-note strong {
+  color: var(--gold-hot);
+  font-weight: 950;
+}
+
 .form-row {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
 }
 
 .checkbox-row {
@@ -305,7 +316,8 @@
 
 .managed-admin-grid .admin-form {
   max-height: calc(100vh - 6rem);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: sticky;
   top: 1rem;
 }
@@ -313,7 +325,8 @@
 .managed-admin-list {
   align-content: start;
   max-height: min(58rem, calc(100vh - 6rem));
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 0.8rem;
 }
@@ -333,6 +346,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: grid;
   gap: 0.8rem;
+  min-width: 0;
   padding: 1rem;
 }
 
@@ -341,6 +355,11 @@
   display: flex;
   gap: 1rem;
   justify-content: space-between;
+  min-width: 0;
+}
+
+.admin-item-head > div:first-child {
+  min-width: 0;
 }
 
 .admin-item h3 {
@@ -351,6 +370,9 @@
 .admin-item small {
   color: var(--muted);
   line-height: 1.6;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .server-admin-item p {
@@ -415,7 +437,9 @@
 
 .admin-item-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .server-admin-list .admin-item {
