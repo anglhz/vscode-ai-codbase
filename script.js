@@ -630,13 +630,14 @@ const counterObserver = new IntersectionObserver(
       if (!entry.isIntersecting) return;
 
       const target = Number(entry.target.dataset.count);
+      const suffix = entry.target.dataset.countSuffix || "";
       const duration = 1100;
       const start = performance.now();
 
       const tick = (now) => {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        entry.target.textContent = Math.round(target * eased).toLocaleString();
+        entry.target.textContent = `${Math.round(target * eased).toLocaleString()}${suffix}`;
 
         if (progress < 1) requestAnimationFrame(tick);
       };
