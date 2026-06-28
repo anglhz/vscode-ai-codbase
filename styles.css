@@ -861,6 +861,18 @@ h3 {
   text-transform: uppercase;
 }
 
+.event-history-actions {
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.event-history-actions .button {
+  justify-content: center;
+  min-width: min(100%, 18rem);
+}
+
 .event-panel-head {
   background:
     linear-gradient(90deg, rgba(240, 164, 0, 0.12), transparent),
@@ -1008,6 +1020,33 @@ h3 {
   color: var(--ink);
   display: block;
   line-height: 1.35;
+}
+
+.flag-token {
+  align-items: center;
+  display: inline-flex;
+  margin-right: 0.32rem;
+  transform: translateY(0.12em);
+  vertical-align: baseline;
+}
+
+.flag-icon {
+  border-radius: 0.12rem;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+  display: block;
+  height: 0.92em;
+  object-fit: cover;
+  width: 1.35em;
+}
+
+.flag-fallback {
+  background: rgba(240, 164, 0, 0.14);
+  border: 1px solid rgba(240, 164, 0, 0.35);
+  color: var(--gold-hot);
+  font-size: 0.68em;
+  font-weight: 950;
+  line-height: 1;
+  padding: 0.18rem 0.24rem;
 }
 
 .news-card {

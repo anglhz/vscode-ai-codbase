@@ -17,6 +17,7 @@ const SERVERS_KEY = "codbase_admin_servers";
 let managedNews = [];
 let managedEvents = [];
 let isNewsExpanded = false;
+let isPastEventsExpanded = false;
 let revealObserver;
 
 const observeReveals = (scope = document) => {
@@ -48,6 +49,34 @@ const escapeHtml = (value) =>
       "'": "&#39;",
     }[char]
   ));
+
+const flagAliases = {
+  en: "GB",
+  uk: "GB",
+  gb: "GB",
+  wales: "GB",
+};
+
+const flagCode = (value) => {
+  const raw = String(value || "").trim().toLowerCase();
+  return flagAliases[raw] || raw.toUpperCase();
+};
+
+const flagMarkup = (value) => {
+  const code = flagCode(value);
+  if (!/^[A-Z]{2}$/.test(code)) return escapeHtml(value);
+  return `
+    <span class="flag-token">
+      <img class="flag-icon" src="assets/flags/${code}.svg" alt="${escapeHtml(code)} flag" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+      <span class="flag-fallback" hidden>${escapeHtml(code)}</span>
+    </span>
+  `;
+};
+
+const formatRichText = (value) =>
+  escapeHtml(value)
+    .replace(/:flag_([a-z]{2}):/gi, (_, code) => flagMarkup(code))
+    .replace(/\[([a-z]{2})\]/gi, (_, code) => flagMarkup(code));
 
 const readStore = (key) => {
   try {
@@ -212,16 +241,19 @@ const formatEventDetail = (event) => {
 
   return `
     <div class="event-detail-grid">${detailGrid}</div>
-    ${formatArticleBody(event.description || "No extra event information yet.")}
+    ${formatArticleBody(event.description || "No extra event information yet.", true)}
     ${link ? `<p><a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Open tournament page</a></p>` : ""}
   `;
 };
-const formatArticleBody = (value) =>
+const formatArticleBody = (value, allowFlags = false) =>
   String(value || "")
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean)
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br>")}</p>`)
+    .map((paragraph) => {
+      const formatted = allowFlags ? formatRichText(paragraph) : escapeHtml(paragraph);
+      return `<p>${formatted.replace(/\n/g, "<br>")}</p>`;
+    })
     .join("");
 
 const closeNewsModal = () => {
@@ -391,8 +423,11 @@ const renderManagedEvents = async () => {
   const current = items.filter((event) => isCurrentEvent(event, today)).sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
   const upcoming = items.filter((event) => isUpcomingEvent(event, today)).sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 4);
   const past = items.filter((event) => isPastEvent(event, today)).sort((a, b) => eventEnd(b).localeCompare(eventEnd(a)));
-  const topLanWinners = past.filter((event) => isEventType(event, "LAN")).slice(0, 3);
-  const topMajorCupWinners = past.filter((event) => isEventType(event, "Major Cup")).slice(0, 3);
+  const lanWinners = past.filter((event) => isEventType(event, "LAN"));
+  const majorCupWinners = past.filter((event) => isEventType(event, "Major Cup"));
+  const visibleLanWinners = isPastEventsExpanded ? lanWinners : lanWinners.slice(0, 3);
+  const visibleMajorCupWinners = isPastEventsExpanded ? majorCupWinners : majorCupWinners.slice(0, 3);
+  const hiddenPastCount = Math.max(lanWinners.length - 3, 0) + Math.max(majorCupWinners.length - 3, 0);
 
   if (current) {
     eventsLayout.classList.remove("no-current-event");
@@ -468,8 +503,17 @@ const renderManagedEvents = async () => {
   `;
 
   pastPanel.innerHTML = `
-    ${renderWinnerGroup("Top 3 LAN winners", topLanWinners)}
-    ${renderWinnerGroup("Top 3 Major Cup winners", topMajorCupWinners)}
+    ${renderWinnerGroup(isPastEventsExpanded ? "All LAN winners" : "Top 3 LAN winners", visibleLanWinners)}
+    ${renderWinnerGroup(isPastEventsExpanded ? "All Major Cup winners" : "Top 3 Major Cup winners", visibleMajorCupWinners)}
+    ${hiddenPastCount > 0
+      ? `
+        <div class="event-history-actions reveal">
+          <button class="button ${isPastEventsExpanded ? "button-ghost" : "button-primary"}" type="button" data-past-events-toggle>
+            ${isPastEventsExpanded ? "Show top 3 only" : `View all past events (${hiddenPastCount} more)`}
+          </button>
+        </div>
+      `
+      : ""}
   `;
 
   observeReveals(upcomingPanel);
@@ -667,6 +711,11 @@ document.addEventListener("click", (event) => {
   if (target.matches("[data-news-toggle]")) {
     isNewsExpanded = !isNewsExpanded;
     renderManagedNews().then(attachCardTilt);
+  }
+
+  if (target.matches("[data-past-events-toggle]")) {
+    isPastEventsExpanded = !isPastEventsExpanded;
+    renderManagedEvents();
   }
 
   if (target.matches("[data-news-close]")) closeNewsModal();

@@ -48,6 +48,7 @@ const mimeTypes = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".ico": "image/x-icon",
+  ".svg": "image/svg+xml",
 };
 
 const send = (res, status, body, type = "application/json; charset=utf-8", headers = {}) => {
