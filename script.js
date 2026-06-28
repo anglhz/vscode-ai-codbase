@@ -65,12 +65,7 @@ const flagCode = (value) => {
 const flagMarkup = (value) => {
   const code = flagCode(value);
   if (!/^[A-Z]{2}$/.test(code)) return escapeHtml(value);
-  return `
-    <span class="flag-token">
-      <img class="flag-icon" src="assets/flags/${code}.svg" alt="${escapeHtml(code)} flag" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
-      <span class="flag-fallback" hidden>${escapeHtml(code)}</span>
-    </span>
-  `;
+  return `<span class="flag-token" style="--flag-url: url('assets/flags/${code}.svg')" aria-label="${escapeHtml(code)} flag">${escapeHtml(code)}</span>`;
 };
 
 const formatRichText = (value) =>
