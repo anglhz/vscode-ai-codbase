@@ -38,6 +38,10 @@ body::selection {
   color: #17130a;
 }
 
+.icon-sprite {
+  display: none;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -146,6 +150,12 @@ a {
   width: 1.55rem;
 }
 
+.social-icon {
+  fill: currentColor;
+  height: 0.92rem;
+  width: 0.92rem;
+}
+
 .utility-links .social-link {
   min-height: 0;
 }
@@ -158,16 +168,36 @@ a {
 }
 
 .social-facebook {
-  font-size: 0.9rem;
-  text-transform: none;
+  color: #d8d3ca;
 }
 
 .social-youtube {
   color: #ffdf8a;
 }
 
-.social-x {
-  font-size: 0.78rem;
+.social-facebook:hover {
+  color: #1877f2;
+}
+
+.social-instagram:hover {
+  color: #e4405f;
+}
+
+.social-youtube:hover {
+  color: #ff0033;
+}
+
+.social-twitch:hover {
+  color: #9146ff;
+}
+
+.social-tiktok:hover,
+.social-x:hover {
+  color: #f7f3e8;
+}
+
+.social-discord:hover {
+  color: #5865f2;
 }
 
 .utility-divider {
